@@ -47,6 +47,8 @@ def ollama_chat(pool_manager, model, prompt, temperature=None):
         for chunk in (json.loads(line.decode('utf-8')) for line in response_chat.read_chunked()):
             if 'error' in chunk:
                 raise urllib3.exceptions.HTTPError(chunk['error'])
-            yield chunk['message']['content']
+            content = chunk['message']['content']
+            if content:
+                yield content
     finally:
         response_chat.close()
