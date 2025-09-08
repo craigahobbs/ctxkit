@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 (2025-09-08)
+
+- [c41410f](https://github.com/craigahobbs/ctxkit/commit/c41410f) - improve ollama thinking behavior
+
 ## 1.2.0 (2025-09-08)
 
 - [200bbb5](https://github.com/craigahobbs/ctxkit/commit/200bbb5) - ollama and grok api calling
