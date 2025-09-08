@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 (2025-09-08)
+
+- [200bbb5](https://github.com/craigahobbs/ctxkit/commit/200bbb5) - ollama and grok api calling
+
 ## 1.1.1 (2025-09-03)
 
 - [c79628f](https://github.com/craigahobbs/ctxkit/commit/c79628f) - fix minor initial blank line issue
