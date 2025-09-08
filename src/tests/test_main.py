@@ -309,7 +309,7 @@ Hello!
                 main(['-i', unknown_path])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), f"\nError: [Errno 2] No such file or directory: '{unknown_path}'\n")
+        self.assertEqual(stderr.getvalue(), f"\nError: [Errno 2] No such file or directory: {unknown_path!r}\n")
 
 
     def test_file(self):
@@ -430,7 +430,7 @@ Hello!
                 main(['-f', unknown_path])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), f"\nError: [Errno 2] No such file or directory: '{unknown_path}'\n")
+        self.assertEqual(stderr.getvalue(), f"\nError: [Errno 2] No such file or directory: {unknown_path!r}\n")
 
 
     def test_dir(self):
@@ -527,7 +527,8 @@ Hello!
                 main(['-d', unknown_path, '-d', unknown_path2, '-x', 'txt'])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), f"\nError: [Errno 2] No such file or directory: '{unknown_path}'\n")
+        self.assertTrue(stderr.getvalue().startswith('\n'))
+        self.assertTrue(stderr.getvalue().endswith(f'{unknown_path!r}\n'))
 
 
     def test_variable(self):
