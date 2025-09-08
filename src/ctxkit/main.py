@@ -149,7 +149,8 @@ def process_config_items(pool_manager, config, variables, root_dir='.'):
         # File item
         elif item_key == 'file':
             file_text = _fetch_text(pool_manager, item_path)
-            yield f'<{item_path}>\n{file_text}{"\n" if file_text else ""}</{item_path}>'
+            newline = '\n'
+            yield f'<{item_path}>{newline}{file_text}{newline if file_text else ""}</{item_path}>'
 
 
         # Directory item
@@ -162,9 +163,10 @@ def process_config_items(pool_manager, config, variables, root_dir='.'):
                 raise Exception(f'No files found, "{item_path}"')
 
             # Output the file text
+            newline = '\n'
             for file_path in dir_files:
                 file_text = _fetch_text(pool_manager, file_path)
-                yield f'<{file_path}>\n{file_text}{"\n" if file_text else ""}</{file_path}>'
+                yield f'<{file_path}>{newline}{file_text}{newline if file_text else ""}</{file_path}>'
 
         # Variable definition item
         elif item_key == 'var':
