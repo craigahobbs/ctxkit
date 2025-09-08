@@ -24,6 +24,30 @@ print('Hello, world!')
 ```
 
 
+### API Calling
+
+ctxkit supports calling the Ollama API and the Grok (xAI) API via the `--ollama` and `--grok`
+arguments, respectively.
+
+**Ollama**
+
+```sh
+ctxkit -m 'Hello!' --ollama gpt-oss:20b
+```
+
+**Grok**
+
+```sh
+ctxkit -m 'Hello!' --grok grok-3
+```
+
+You can call an API with a prompt from `stdin` by passing no prompt items:
+
+```sh
+echo 'Hello!' | ctxkit --ollama gpt-oss:20b
+```
+
+
 ### Copying Output
 
 To copy the output of ctxkit and paste it into your favorite AI chat application, pipe ctxkit's
@@ -32,19 +56,19 @@ output into the clipboard tool for your platform.
 **macOS**
 
 ```sh
-ctxkit -m "Hello!" | pbcopy
+ctxkit -m 'Hello!' | pbcopy
 ```
 
 **Windows**
 
 ```sh
-ctxkit -m "Hello!" | clip
+ctxkit -m 'Hello!' | clip
 ```
 
 **Linux**
 
 ```sh
-ctxkit -m "Hello!" | xsel -ib
+ctxkit -m 'Hello!' | xsel -ib
 ```
 
 

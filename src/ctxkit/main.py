@@ -11,9 +11,12 @@ import json
 import os
 import re
 import sys
-import urllib.request
 
 import schema_markdown
+import urllib3
+
+from .grok import grok_chat
+from .ollama import ollama_chat
 
 
 def main(argv=None):
@@ -41,7 +44,16 @@ def main(argv=None):
                         help='the maximum directory depth, default is 0 (infinite)')
     parser.add_argument('-v', '--var', nargs=2, metavar=('VAR', 'EXPR'), dest='items', action=TypedItemAction,
                         help='define a variable (reference with "{{var}}")')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--ollama', metavar='MODEL',
+                        help='pass to the Ollama API')
+    group.add_argument('--grok', metavar='MODEL',
+                        help='pass to the Grok API')
+    parser.add_argument('--temp', metavar='TEMP', type=float, default=0.7,
+                        help='the LLM temperature (default is 0.7)')
     args = parser.parse_args(args=argv)
+    model_type = (args.ollama and 'ollama') or (args.grok and 'grok')
+    model_name = args.ollama or args.grok
 
     # Show configuration file format?
     if args.config_help:
@@ -64,20 +76,52 @@ def main(argv=None):
         else: # if item_type == 'm':
             config['items'].append({'message': item_value})
 
-    # Validate the configuration
+    # Initialize urllib3 PoolManager
+    pool_manager = urllib3.PoolManager()
+
+    # Pass stdin to an AI?
+    if model_type and not config['items']:
+        prompt = sys.stdin.read()
+        if model_type == 'grok':
+            for chunk in grok_chat(pool_manager, model_name, prompt, temperature=args.temp):
+                print(chunk, end='', flush=True)
+        else: # model_type == 'ollama':
+            for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp):
+                print(chunk, end='', flush=True)
+        print()
+        return
+
+    # No items specified
     if not config['items']:
         parser.error('no prompt items specified')
-    config = schema_markdown.validate_type(CTXKIT_TYPES, 'CtxKitConfig', config)
 
     # Process the configuration
     try:
-        _process_config(config, {})
+        # Pass prompt to an AI?
+        if model_type:
+            prompt = process_config(pool_manager, config, {})
+            if model_type == 'grok':
+                for chunk in grok_chat(pool_manager, model_name, prompt, temperature=args.temp):
+                    print(chunk, end='', flush=True)
+            else: # model_type == 'ollama':
+                for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp):
+                    print(chunk, end='', flush=True)
+            print()
+        else:
+            for ix_item, item_text in enumerate(process_config_items(pool_manager, config, {})):
+                if ix_item != 0:
+                    print()
+                print(item_text)
     except Exception as exc:
-        print(f'Error: {exc}', file=sys.stderr)
+        print(f'\nError: {exc}', file=sys.stderr)
         sys.exit(2)
 
 
-def _process_config(config, variables, root_dir='.', is_first=True):
+def process_config(pool_manager, config, variables, root_dir='.'):
+    return '\n\n'.join(process_config_items(pool_manager, config, variables, root_dir))
+
+
+def process_config_items(pool_manager, config, variables, root_dir='.'):
     # Output the prompt items
     for item in config['items']:
         item_key = list(item.keys())[0]
@@ -95,24 +139,18 @@ def _process_config(config, variables, root_dir='.', is_first=True):
 
         # Config item
         if item_key == 'config':
-            config = schema_markdown.validate_type(CTXKIT_TYPES, 'CtxKitConfig', json.loads(_fetch_text(item_path)))
-            is_first = _process_config(config, variables, os.path.dirname(item_path), is_first)
+            config = schema_markdown.validate_type(CTXKIT_TYPES, 'CtxKitConfig', json.loads(_fetch_text(pool_manager, item_path)))
+            yield from process_config_items(pool_manager, config, variables, os.path.dirname(item_path))
 
         # File include item
         elif item_key == 'include':
-            if not is_first:
-                print()
-            print(_fetch_text(item_path))
+            yield _fetch_text(pool_manager, item_path)
 
         # File item
         elif item_key == 'file':
-            if not is_first:
-                print()
-            file_text = _fetch_text(item_path)
-            print(f'<{item_path}>')
-            if file_text:
-                print(file_text)
-            print(f'</{item_path}>')
+            file_text = _fetch_text(pool_manager, item_path)
+            yield f'<{item_path}>\n{file_text}{"\n" if file_text else ""}</{item_path}>'
+
 
         # Directory item
         elif item_key == 'dir':
@@ -124,14 +162,9 @@ def _process_config(config, variables, root_dir='.', is_first=True):
                 raise Exception(f'No files found, "{item_path}"')
 
             # Output the file text
-            for ix_file, file_path in enumerate(dir_files):
-                if not is_first or ix_file != 0:
-                    print()
-                file_text = _fetch_text(file_path)
-                print(f'<{file_path}>')
-                if file_text:
-                    print(file_text)
-                print(f'</{file_path}>')
+            for file_path in dir_files:
+                file_text = _fetch_text(pool_manager, file_path)
+                yield f'<{file_path}>\n{file_text}{"\n" if file_text else ""}</{file_path}>'
 
         # Variable definition item
         elif item_key == 'var':
@@ -139,22 +172,11 @@ def _process_config(config, variables, root_dir='.', is_first=True):
 
         # Long message item
         elif item_key == 'long':
-            if not is_first:
-                print()
-            for message in item['long']:
-                print(_replace_variables(message, variables))
+            yield _replace_variables('\n'.join(item['long']), variables)
 
         # Message item
         else: # if item_key == 'message'
-            if not is_first:
-                print()
-            print(_replace_variables(item['message'], variables))
-
-        # Set not first
-        if is_first and item_key not in ('config', 'var'):
-            is_first = False
-
-    return is_first
+            yield _replace_variables(item['message'], variables)
 
 
 # Helper to determine if a path is a URL
@@ -165,10 +187,15 @@ _R_URL = re.compile(r'^[a-z]+:')
 
 
 # Helper to fetch a file or URL text
-def _fetch_text(path):
+def _fetch_text(pool_manager, path):
     if _is_url(path):
-        with urllib.request.urlopen(path) as response:
-            return response.read().decode('utf-8').strip()
+        response = pool_manager.request(method='GET', url=path, retries=0)
+        try:
+            if response.status != 200:
+                raise urllib3.exceptions.HTTPError(f'POST {path} failed with status {response.status}')
+            return response.data.decode('utf-8').strip()
+        finally:
+            response.close()
     else:
         with open(path, 'r', encoding='utf-8') as file:
             return file.read().strip()
