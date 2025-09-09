@@ -20,6 +20,10 @@ XAI_URL = 'https://api.x.ai/v1/chat/completions'
 
 
 def grok_chat(pool_manager, model, prompt, temperature):
+    # No API key?
+    if XAI_API_KEY is None:
+        raise urllib3.exceptions.HTTPError('XAI_API_KEY environment variable not set')
+
     # Make POST request with streaming
     response = pool_manager.request(
         method='POST',

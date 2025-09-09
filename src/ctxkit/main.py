@@ -181,11 +181,18 @@ def process_config_items(pool_manager, config, variables, root_dir='.'):
             yield _replace_variables(item['message'], variables)
 
 
-# Helper to determine if a path is a URL
-def _is_url(path):
-    return re.match(_R_URL, path)
+# Prompt item argument type
+class TypedItemAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        # Initialize the destination list if it doesn't exist
+        if not hasattr(namespace, self.dest) or getattr(namespace, self.dest) is None:
+            setattr(namespace, self.dest, [])
 
-_R_URL = re.compile(r'^[a-z]+:')
+        # Get type_id from the option string (e.g., '-p' -> 'p')
+        type_id = option_string.lstrip('-')[:1]
+
+        # Append tuple (type_id, value)
+        getattr(namespace, self.dest).append((type_id, values))
 
 
 # Helper to fetch a file or URL text
@@ -203,18 +210,11 @@ def _fetch_text(pool_manager, path):
             return file.read().strip()
 
 
-# Prompt item argument type
-class TypedItemAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        # Initialize the destination list if it doesn't exist
-        if not hasattr(namespace, self.dest) or getattr(namespace, self.dest) is None:
-            setattr(namespace, self.dest, [])
+# Helper to determine if a path is a URL
+def _is_url(path):
+    return re.match(_R_URL, path)
 
-        # Get type_id from the option string (e.g., '-p' -> 'p')
-        type_id = option_string.lstrip('-')[:1]
-
-        # Append tuple (type_id, value)
-        getattr(namespace, self.dest).append((type_id, values))
+_R_URL = re.compile(r'^[a-z]+:')
 
 
 # Helper to replace variable references

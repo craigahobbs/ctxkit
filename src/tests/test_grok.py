@@ -329,3 +329,16 @@ data:  {"content": "Goodbye"}}]}
 
         self.assertEqual(stdout.getvalue(), '')
         self.assertEqual(stderr.getvalue(), '\nError: xAI API failed with status 500\n')
+
+
+    def test_grok_no_api_key(self):
+        with unittest.mock.patch('ctxkit.grok.XAI_API_KEY', None), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--grok', 'model-name'])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '\nError: XAI_API_KEY environment variable not set\n')

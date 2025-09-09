@@ -38,6 +38,7 @@ ctxkit -m 'Hello!' --ollama gpt-oss:20b
 **Grok**
 
 ```sh
+export XAI_API_KEY=<key>
 ctxkit -m 'Hello!' --grok grok-3
 ```
 
