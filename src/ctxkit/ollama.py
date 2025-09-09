@@ -13,7 +13,7 @@ def _get_ollama_url(path):
     return f'{ollama_host}{path}'
 
 
-# Send a prompt string to the Ollama API and yield the response chunk strings
+# Call the Ollama API and yield the response chunk strings
 def ollama_chat(pool_manager, model, prompt, temperature=None):
     # Is this a thinking model?
     url_show = _get_ollama_url('/api/show')
