@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.2 (2025-09-08)
+
+- [96badc7](https://github.com/craigahobbs/ctxkit/commit/96badc7) - fix tests on windows
+
+- [6e610d4](https://github.com/craigahobbs/ctxkit/commit/6e610d4) - fix for Python 3.11
+
 ## 1.2.1 (2025-09-08)
 
 - [c41410f](https://github.com/craigahobbs/ctxkit/commit/c41410f) - improve ollama thinking behavior
