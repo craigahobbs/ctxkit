@@ -158,7 +158,7 @@ test1
                 main(['-c', unknown_path, '-c', 'https://test.local/unknown.json'])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), f'\nError: [Errno 2] No such file or directory: {unknown_path!r}\n')
+        self.assertEqual(stderr.getvalue(), f'Error: [Errno 2] No such file or directory: {unknown_path!r}\n')
 
 
     def test_config_url(self):
@@ -220,7 +220,7 @@ Main message
                 main(['-c', os.path.join(temp_dir, 'invalid.json')])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), "\nError: Unknown member 'items.0.invalid'\n")
+        self.assertEqual(stderr.getvalue(), "Error: Unknown member 'items.0.invalid'\n")
 
 
     def test_include(self):
@@ -309,7 +309,7 @@ Hello!
                 main(['-i', unknown_path])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), f"\nError: [Errno 2] No such file or directory: {unknown_path!r}\n")
+        self.assertEqual(stderr.getvalue(), f"Error: [Errno 2] No such file or directory: {unknown_path!r}\n")
 
 
     def test_file(self):
@@ -371,7 +371,7 @@ URL content
             with self.assertRaises(SystemExit):
                 main(['-f', 'https://test.local'])
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), '\nError: POST https://test.local failed with status 500\n')
+        self.assertEqual(stderr.getvalue(), 'Error: POST https://test.local failed with status 500\n')
 
 
     def test_file_variable(self):
@@ -430,7 +430,7 @@ Hello!
                 main(['-f', unknown_path])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), f"\nError: [Errno 2] No such file or directory: {unknown_path!r}\n")
+        self.assertEqual(stderr.getvalue(), f"Error: [Errno 2] No such file or directory: {unknown_path!r}\n")
 
 
     def test_dir(self):
@@ -515,7 +515,7 @@ Hello!
                 main(['-d', temp_dir, '-x', 'txt'])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), f'\nError: No files found, "{temp_dir}"\n')
+        self.assertEqual(stderr.getvalue(), f'Error: No files found, "{temp_dir}"\n')
 
 
     def test_dir_relative_not_found(self):
@@ -527,7 +527,6 @@ Hello!
                 main(['-d', unknown_path, '-d', unknown_path2, '-x', 'txt'])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertTrue(stderr.getvalue().startswith('\n'))
         self.assertTrue(stderr.getvalue().endswith(f'{unknown_path!r}\n'))
 
 

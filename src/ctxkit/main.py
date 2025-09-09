@@ -81,39 +81,57 @@ def main(argv=None):
 
     # Pass stdin to an AI?
     if model_type and not config['items']:
-        prompt = sys.stdin.read()
-        if model_type == 'grok':
-            for chunk in grok_chat(pool_manager, model_name, prompt, temperature=args.temp):
-                print(chunk, end='', flush=True)
-        else: # model_type == 'ollama':
-            for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp):
-                print(chunk, end='', flush=True)
-        print()
-        return
+        try:
+            prompt = sys.stdin.read()
+            has_chunks = False
+            if model_type == 'grok':
+                for chunk in grok_chat(pool_manager, model_name, prompt, temperature=args.temp):
+                    print(chunk, end='', flush=True)
+                    has_chunks = True
+            else: # model_type == 'ollama':
+                for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp):
+                    print(chunk, end='', flush=True)
+                    has_chunks = True
+            if has_chunks:
+                print()
+            return
+        except Exception as exc:
+            if has_chunks:
+                print(file=sys.stderr)
+            print(f'Error: {exc}', file=sys.stderr)
+            sys.exit(2)
 
     # No items specified
     if not config['items']:
         parser.error('no prompt items specified')
 
     # Process the configuration
+    has_chunks = False
     try:
         # Pass prompt to an AI?
         if model_type:
+            # Print AI response chunks to stdout
             prompt = process_config(pool_manager, config, {})
             if model_type == 'grok':
                 for chunk in grok_chat(pool_manager, model_name, prompt, temperature=args.temp):
                     print(chunk, end='', flush=True)
+                    has_chunks = True
             else: # model_type == 'ollama':
                 for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp):
                     print(chunk, end='', flush=True)
-            print()
+                    has_chunks = True
+            if has_chunks:
+                print()
         else:
+            # Print prompt items to stdout
             for ix_item, item_text in enumerate(process_config_items(pool_manager, config, {})):
                 if ix_item != 0:
                     print()
                 print(item_text)
     except Exception as exc:
-        print(f'\nError: {exc}', file=sys.stderr)
+        if has_chunks:
+            print(file=sys.stderr)
+        print(f'Error: {exc}', file=sys.stderr)
         sys.exit(2)
 
 
