@@ -183,16 +183,17 @@ def process_config_items(pool_manager, config, variables, root_dir='.'):
 
 # Prompt item argument type
 class TypedItemAction(argparse.Action):
+
     def __call__(self, parser, namespace, values, option_string=None):
         # Initialize the destination list if it doesn't exist
-        if not hasattr(namespace, self.dest) or getattr(namespace, self.dest) is None:
-            setattr(namespace, self.dest, [])
+        items = getattr(namespace, self.dest)
+        if items is None:
+            items = []
+            setattr(namespace, self.dest, items)
 
-        # Get type_id from the option string (e.g., '-p' -> 'p')
-        type_id = option_string.lstrip('-')[:1]
-
-        # Append tuple (type_id, value)
-        getattr(namespace, self.dest).append((type_id, values))
+        # Append tuple (item_id, value)
+        item_id = option_string.lstrip('-')[:1]
+        items.append((item_id, values))
 
 
 # Helper to fetch a file or URL text
