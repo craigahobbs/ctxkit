@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4 (2025-09-09)
+
+- [206df58](https://github.com/craigahobbs/ctxkit/commit/206df58) - improved error handling
+
 ## 1.2.3 (2025-09-09)
 
 - [57f23b4](https://github.com/craigahobbs/ctxkit/commit/57f23b4) - improve comments
