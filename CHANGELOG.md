@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.3 (2025-09-09)
+
+- [57f23b4](https://github.com/craigahobbs/ctxkit/commit/57f23b4) - improve comments
+
+- [abd6ade](https://github.com/craigahobbs/ctxkit/commit/abd6ade) - add comments
+
+- [02dabeb](https://github.com/craigahobbs/ctxkit/commit/02dabeb) - remove __init__.py imports
+
+- [26b9078](https://github.com/craigahobbs/ctxkit/commit/26b9078) - improve item argument parsing
+
+- [49ab563](https://github.com/craigahobbs/ctxkit/commit/49ab563) - improved error message when using --grok without XAI_API_KEY set
+
 ## 1.2.2 (2025-09-08)
 
 - [96badc7](https://github.com/craigahobbs/ctxkit/commit/96badc7) - fix tests on windows
