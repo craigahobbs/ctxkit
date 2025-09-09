@@ -15,10 +15,12 @@ import urllib3
 # Load environment variables
 XAI_API_KEY = os.getenv('XAI_API_KEY')
 
+
 # API endpoint
 XAI_URL = 'https://api.x.ai/v1/chat/completions'
 
 
+# Send a prompt string to the xAI API and yield the response chunk strings
 def grok_chat(pool_manager, model, prompt, temperature):
     # No API key?
     if XAI_API_KEY is None:

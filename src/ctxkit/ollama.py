@@ -7,11 +7,13 @@ import os
 import urllib3
 
 
+# Helper function to get an Ollama API URL
 def _get_ollama_url(path):
     ollama_host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
     return f'{ollama_host}{path}'
 
 
+# Send a prompt string to the Ollama API and yield the response chunk strings
 def ollama_chat(pool_manager, model, prompt, temperature=None):
     # Is this a thinking model?
     url_show = _get_ollama_url('/api/show')

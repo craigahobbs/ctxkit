@@ -117,10 +117,12 @@ def main(argv=None):
         sys.exit(2)
 
 
+# Process a configuration model and return the prompt string
 def process_config(pool_manager, config, variables, root_dir='.'):
     return '\n\n'.join(process_config_items(pool_manager, config, variables, root_dir))
 
 
+# Process a configuration model and yield the prompt item strings
 def process_config_items(pool_manager, config, variables, root_dir='.'):
     # Output the prompt items
     for item in config['items']:
@@ -181,7 +183,7 @@ def process_config_items(pool_manager, config, variables, root_dir='.'):
             yield _replace_variables(item['message'], variables)
 
 
-# Prompt item argument type
+# argparse argument type for prompt items
 class TypedItemAction(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
