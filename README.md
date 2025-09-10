@@ -87,25 +87,31 @@ the following types: configuration files (`-c`), messages (`-m`), file path or U
 
 ```
 usage: ctxkit [-h] [-g] [-c PATH] [-m TEXT] [-i PATH] [-t PATH] [-f PATH]
-              [-d PATH] [-x EXT] [-l N] [-v VAR EXPR] [--ollama MODEL |
-              --grok MODEL] [--temp TEMP] [--topp TOPP]
+              [-d PATH] [-v VAR EXPR] [-x EXT] [-l INT] [--ollama MODEL |
+              --grok MODEL] [--temp NUM] [--topp NUM]
 
 options:
   -h, --help           show this help message and exit
   -g, --config-help    display the JSON configuration file format
+
+Prompt Items:
   -c, --config PATH    process the JSON configuration file path or URL
   -m, --message TEXT   add a prompt message
   -i, --include PATH   add the file path or URL text
   -t, --template PATH  add the file path or URL template text
   -f, --file PATH      add the file path or URL as a text file
   -d, --dir PATH       add a directory's text files
-  -x, --ext EXT        add a directory text file extension
-  -l, --depth N        the maximum directory depth, default is 0 (infinite)
   -v, --var VAR EXPR   define a variable (reference with "{{var}}")
+
+Directory Options:
+  -x, --ext EXT        add a directory text file extension
+  -l, --depth INT      the maximum directory depth, default is 0 (infinite)
+
+API Calling:
   --ollama MODEL       pass to the Ollama API
   --grok MODEL         pass to the Grok API
-  --temp TEMP          set the model response temperature
-  --topp TOPP          set the model response top_p
+  --temp NUM           set the model response temperature
+  --topp NUM           set the model response top_p
 ```
 
 

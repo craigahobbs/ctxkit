@@ -28,33 +28,36 @@ def main(argv=None):
     parser = argparse.ArgumentParser(prog='ctxkit')
     parser.add_argument('-g', '--config-help', action='store_true',
                         help='display the JSON configuration file format')
-    parser.add_argument('-c', '--config', metavar='PATH', dest='items', action=TypedItemAction, item_type='config',
-                        help='process the JSON configuration file path or URL')
-    parser.add_argument('-m', '--message', metavar='TEXT', dest='items', action=TypedItemAction, item_type='message',
-                        help='add a prompt message')
-    parser.add_argument('-i', '--include', metavar='PATH', dest='items', action=TypedItemAction, item_type='include',
-                        help='add the file path or URL text')
-    parser.add_argument('-t', '--template', metavar='PATH', dest='items', action=TypedItemAction, item_type='template',
-                        help='add the file path or URL template text')
-    parser.add_argument('-f', '--file', metavar='PATH', dest='items', action=TypedItemAction, item_type='file',
-                        help='add the file path or URL as a text file')
-    parser.add_argument('-d', '--dir', metavar='PATH', dest='items', action=TypedItemAction, item_type='dir',
-                        help="add a directory's text files")
-    parser.add_argument('-x', '--ext', action='append', default=[],
-                        help='add a directory text file extension')
-    parser.add_argument('-l', '--depth', metavar='N', type=int, default=0,
-                        help='the maximum directory depth, default is 0 (infinite)')
-    parser.add_argument('-v', '--var', nargs=2, metavar=('VAR', 'EXPR'), dest='items', action=TypedItemAction, item_type='var',
-                        help='define a variable (reference with "{{var}}")')
-    group = parser.add_mutually_exclusive_group()
+    items_group = parser.add_argument_group('Prompt Items')
+    items_group.add_argument('-c', '--config', metavar='PATH', dest='items', action=TypedItemAction, item_type='config',
+                             help='process the JSON configuration file path or URL')
+    items_group.add_argument('-m', '--message', metavar='TEXT', dest='items', action=TypedItemAction, item_type='message',
+                             help='add a prompt message')
+    items_group.add_argument('-i', '--include', metavar='PATH', dest='items', action=TypedItemAction, item_type='include',
+                             help='add the file path or URL text')
+    items_group.add_argument('-t', '--template', metavar='PATH', dest='items', action=TypedItemAction, item_type='template',
+                             help='add the file path or URL template text')
+    items_group.add_argument('-f', '--file', metavar='PATH', dest='items', action=TypedItemAction, item_type='file',
+                             help='add the file path or URL as a text file')
+    items_group.add_argument('-d', '--dir', metavar='PATH', dest='items', action=TypedItemAction, item_type='dir',
+                             help="add a directory's text files")
+    items_group.add_argument('-v', '--var', nargs=2, metavar=('VAR', 'EXPR'), dest='items', action=TypedItemAction, item_type='var',
+                             help='define a variable (reference with "{{var}}")')
+    dir_group = parser.add_argument_group('Directory Options')
+    dir_group.add_argument('-x', '--ext', action='append', default=[],
+                           help='add a directory text file extension')
+    dir_group.add_argument('-l', '--depth', metavar='INT', type=int, default=0,
+                           help='the maximum directory depth, default is 0 (infinite)')
+    api_group = parser.add_argument_group('API Calling')
+    group = api_group.add_mutually_exclusive_group()
     group.add_argument('--ollama', metavar='MODEL',
-                        help='pass to the Ollama API')
+                       help='pass to the Ollama API')
     group.add_argument('--grok', metavar='MODEL',
-                        help='pass to the Grok API')
-    parser.add_argument('--temp', type=float,
-                        help='set the model response temperature')
-    parser.add_argument('--topp', type=float,
-                        help='set the model response top_p')
+                       help='pass to the Grok API')
+    api_group.add_argument('--temp', metavar='NUM', type=float,
+                           help='set the model response temperature')
+    api_group.add_argument('--topp', metavar='NUM', type=float,
+                           help='set the model response top_p')
     args = parser.parse_args(args=argv)
     model_type = (args.ollama and 'ollama') or (args.grok and 'grok')
     model_name = args.ollama or args.grok
