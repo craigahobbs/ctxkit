@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.5 (2025-09-09)
+
+- [26afaea](https://github.com/craigahobbs/ctxkit/commit/26afaea) - add --topp argument
+
 ## 1.2.4 (2025-09-09)
 
 - [206df58](https://github.com/craigahobbs/ctxkit/commit/206df58) - improved error handling
