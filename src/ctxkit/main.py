@@ -28,21 +28,23 @@ def main(argv=None):
     parser = argparse.ArgumentParser(prog='ctxkit')
     parser.add_argument('-g', '--config-help', action='store_true',
                         help='display the JSON configuration file format')
-    parser.add_argument('-c', '--config', metavar='PATH', dest='items', action=TypedItemAction,
+    parser.add_argument('-c', '--config', metavar='PATH', dest='items', action=TypedItemAction, item_type='config',
                         help='process the JSON configuration file path or URL')
-    parser.add_argument('-m', '--message', metavar='TEXT', dest='items', action=TypedItemAction,
+    parser.add_argument('-m', '--message', metavar='TEXT', dest='items', action=TypedItemAction, item_type='message',
                         help='add a prompt message')
-    parser.add_argument('-i', '--include', metavar='PATH', dest='items', action=TypedItemAction,
+    parser.add_argument('-i', '--include', metavar='PATH', dest='items', action=TypedItemAction, item_type='include',
                         help='add the file path or URL text')
-    parser.add_argument('-f', '--file', metavar='PATH', dest='items', action=TypedItemAction,
+    parser.add_argument('-t', '--template', metavar='PATH', dest='items', action=TypedItemAction, item_type='template',
+                        help='add the file path or URL template text')
+    parser.add_argument('-f', '--file', metavar='PATH', dest='items', action=TypedItemAction, item_type='file',
                         help='add the file path or URL as a text file')
-    parser.add_argument('-d', '--dir', metavar='PATH', dest='items', action=TypedItemAction,
+    parser.add_argument('-d', '--dir', metavar='PATH', dest='items', action=TypedItemAction, item_type='dir',
                         help="add a directory's text files")
     parser.add_argument('-x', '--ext', action='append', default=[],
                         help='add a directory text file extension')
     parser.add_argument('-l', '--depth', metavar='N', type=int, default=0,
                         help='the maximum directory depth, default is 0 (infinite)')
-    parser.add_argument('-v', '--var', nargs=2, metavar=('VAR', 'EXPR'), dest='items', action=TypedItemAction,
+    parser.add_argument('-v', '--var', nargs=2, metavar=('VAR', 'EXPR'), dest='items', action=TypedItemAction, item_type='var',
                         help='define a variable (reference with "{{var}}")')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--ollama', metavar='MODEL',
@@ -50,9 +52,9 @@ def main(argv=None):
     group.add_argument('--grok', metavar='MODEL',
                         help='pass to the Grok API')
     parser.add_argument('--temp', type=float,
-                        help='set the response temperature')
+                        help='set the model response temperature')
     parser.add_argument('--topp', type=float,
-                        help='set the response top_p')
+                        help='set the model response top_p')
     args = parser.parse_args(args=argv)
     model_type = (args.ollama and 'ollama') or (args.grok and 'grok')
     model_name = args.ollama or args.grok
@@ -65,17 +67,19 @@ def main(argv=None):
     # Load the config file
     config = {'items': []}
     for item_type, item_value in (args.items or []):
-        if item_type == 'c':
+        if item_type == 'config':
             config['items'].append({'config': item_value})
-        elif item_type == 'i':
+        elif item_type == 'include':
             config['items'].append({'include': item_value})
-        elif item_type == 'f':
+        elif item_type == 'template':
+            config['items'].append({'template': item_value})
+        elif item_type == 'file':
             config['items'].append({'file': item_value})
-        elif item_type == 'd':
+        elif item_type == 'dir':
             config['items'].append({'dir': {'path': item_value, 'exts': args.ext, 'depth': args.depth}})
-        elif item_type == 'v':
+        elif item_type == 'var':
             config['items'].append({'var': {'name': item_value[0], 'value': item_value[1]}})
-        else: # if item_type == 'm':
+        else: # item_type == 'message':
             config['items'].append({'message': item_value})
 
     # Initialize urllib3 PoolManager
@@ -150,7 +154,7 @@ def process_config_items(pool_manager, config, variables, root_dir='.'):
 
         # Get the item path, if any
         item_path = None
-        if item_key in ('config', 'include', 'file'):
+        if item_key in ('config', 'include', 'template', 'file'):
             item_path = _replace_variables(item[item_key], variables)
         elif item_key == 'dir':
             item_path = _replace_variables(item[item_key]['path'], variables)
@@ -168,12 +172,15 @@ def process_config_items(pool_manager, config, variables, root_dir='.'):
         elif item_key == 'include':
             yield _fetch_text(pool_manager, item_path)
 
+        # File include with variables item
+        elif item_key == 'template':
+            yield _replace_variables(_fetch_text(pool_manager, item_path), variables)
+
         # File item
         elif item_key == 'file':
             file_text = _fetch_text(pool_manager, item_path)
             newline = '\n'
             yield f'<{item_path}>{newline}{file_text}{newline if file_text else ""}</{item_path}>'
-
 
         # Directory item
         elif item_key == 'dir':
@@ -206,6 +213,10 @@ def process_config_items(pool_manager, config, variables, root_dir='.'):
 # argparse argument type for prompt items
 class TypedItemAction(argparse.Action):
 
+    def __init__(self, *args, **kwargs):
+        self.item_type = kwargs.pop('item_type')
+        super().__init__(*args, **kwargs)
+
     def __call__(self, parser, namespace, values, option_string=None):
         # Initialize the destination list if it doesn't exist
         items = getattr(namespace, self.dest)
@@ -213,9 +224,8 @@ class TypedItemAction(argparse.Action):
             items = []
             setattr(namespace, self.dest, items)
 
-        # Append tuple (item_id, value)
-        item_id = option_string.lstrip('-')[:1]
-        items.append((item_id, values))
+        # Append tuple (item_type, value)
+        items.append((self.item_type, values))
 
 
 # Helper to fetch a file or URL text
@@ -294,6 +304,9 @@ union CtxKitItem
 
     # File path or URL text
     string include
+
+    # File path or URL template text
+    string template
 
     # File path or URL as a text file
     string file

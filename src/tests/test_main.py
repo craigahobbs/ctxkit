@@ -312,6 +312,91 @@ Hello!
         self.assertEqual(stderr.getvalue(), f"Error: [Errno 2] No such file or directory: {unknown_path!r}\n")
 
 
+    def test_template(self):
+        with create_test_files([
+            ('test.txt', 'Hello, {{name}}!')
+        ]) as temp_dir, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            file_path = os.path.join(temp_dir, 'test.txt')
+            main(['-v', 'name', 'World', '-t', file_path])
+        self.assertEqual(stdout.getvalue(), '''\
+Hello, World!
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_template_missing(self):
+        with create_test_files([
+            ('test.txt', 'Hello, {{name}}!')
+        ]) as temp_dir, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            file_path = os.path.join(temp_dir, 'test.txt')
+            main(['-t', file_path])
+        self.assertEqual(stdout.getvalue(), '''\
+Hello, !
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_template_url(self):
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            # Create a mock Response object for the pull request
+            mock_pull_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_pull_response.status = 200
+            mock_pull_response.data = b'Hello, {{name}}!\n'
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_pull_response
+
+            main(['-v', 'name', 'World', '-t', 'https://test.local'])
+        self.assertEqual(stdout.getvalue(), '''\
+Hello, World!
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_template_empty(self):
+        with create_test_files([
+            ('test.txt', '')
+        ]) as temp_dir, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            file_path = os.path.join(temp_dir, 'test.txt')
+            main(['-t', file_path])
+        self.assertEqual(stdout.getvalue(), '\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_template_strip(self):
+        with create_test_files([
+            ('test.txt', '\nHello!\n')
+        ]) as temp_dir, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            file_path = os.path.join(temp_dir, 'test.txt')
+            main(['-t', file_path])
+        self.assertEqual(stdout.getvalue(), '''\
+Hello!
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_template_error(self):
+        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            unknown_path = os.path.join('not-found', 'unknown.txt')
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-t', unknown_path])
+        self.assertEqual(cm_exc.exception.code, 2)
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), f"Error: [Errno 2] No such file or directory: {unknown_path!r}\n")
+
+
     def test_file(self):
         with create_test_files([
             ('test.txt', 'Hello!'),
