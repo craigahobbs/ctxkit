@@ -3,12 +3,15 @@
 
 import io
 import json
+import os
 import unittest
 import unittest.mock
 
 import urllib3
 
 from ctxkit.main import main
+
+from .test_main import create_test_files
 
 
 class TestOllama(unittest.TestCase):
@@ -69,6 +72,73 @@ class TestOllama(unittest.TestCase):
         mock_chat_response.close.assert_called_once_with()
 
         self.assertEqual(stdout.getvalue(), 'Hi there!\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_ollama_output(self):
+        with create_test_files([
+                 ('test.txt', 'test text')
+             ]) as temp_dir, \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            test_path = os.path.join(temp_dir, 'test.txt')
+
+            # Create a mock Response object for the show API call
+            mock_show_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_show_response.status = 200
+            mock_show_response.json.return_value = {'capabilities': []}
+
+            # Create a mock Response object for the chat API call
+            mock_chat_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_chat_response.status = 200
+            mock_chat_response.read_chunked.return_value = [
+                json.dumps({'message': {'content': 'Hi '}}).encode('utf-8'),
+                json.dumps({'message': {'content': 'there!'}}).encode('utf-8')
+            ]
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
+
+            main(['-m', 'Hello', '-i', test_path, '--ollama', 'model-name', '-o', test_path])
+
+            with open(test_path, 'r', encoding='utf-8') as output:
+                test_text = output.read()
+            self.assertEqual(test_text, 'Hi there!\n')
+
+        self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
+        self.assertListEqual(
+            mock_pool_manager_instance.request.call_args_list,
+            [
+                unittest.mock.call(
+                    'POST',
+                    'http://127.0.0.1:11434/api/show',
+                    json={'model': 'model-name'},
+                    retries=0
+                ),
+                unittest.mock.call(
+                    'POST',
+                    'http://127.0.0.1:11434/api/chat',
+                    json={
+                        'model': 'model-name',
+                        'messages': [
+                            {'role': 'user', 'content': 'Hello\n\ntest text'}
+                        ],
+                        'stream': True,
+                        'think': False
+                    },
+                    preload_content=False,
+                    retries=0
+                )
+            ]
+        )
+        mock_show_response.json.assert_called_once_with()
+        mock_chat_response.read_chunked.assert_called_once_with()
+        mock_show_response.close.assert_called_once_with()
+        mock_chat_response.close.assert_called_once_with()
+
+        self.assertEqual(stdout.getvalue(), '')
         self.assertEqual(stderr.getvalue(), '')
 
 
@@ -316,6 +386,71 @@ class TestOllama(unittest.TestCase):
         self.assertEqual(stderr.getvalue(), '')
 
 
+    def test_ollama_stdin_output(self):
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the show API call
+            mock_show_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_show_response.status = 200
+            mock_show_response.json.return_value = {'capabilities': []}
+
+            # Create a mock Response object for the chat API call
+            mock_chat_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_chat_response.status = 200
+            mock_chat_response.read_chunked.return_value = [
+                json.dumps({'message': {'content': 'Hi '}}).encode('utf-8'),
+                json.dumps({'message': {'content': 'there!'}}).encode('utf-8')
+            ]
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
+
+            with create_test_files([]) as temp_dir:
+                output_path = os.path.join(temp_dir, 'output.txt')
+                main(['--ollama', 'model-name', '-o', output_path])
+                with open(output_path, 'r', encoding='utf-8') as output:
+                    output_text = output.read()
+            self.assertEqual(output_text, 'Hi there!\n')
+
+        self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
+        self.assertListEqual(
+            mock_pool_manager_instance.request.call_args_list,
+            [
+                unittest.mock.call(
+                    'POST',
+                    'http://127.0.0.1:11434/api/show',
+                    json={'model': 'model-name'},
+                    retries=0
+                ),
+                unittest.mock.call(
+                    'POST',
+                    'http://127.0.0.1:11434/api/chat',
+                    json={
+                        'model': 'model-name',
+                        'messages': [
+                            {'role': 'user', 'content': 'Hello'}
+                        ],
+                        'stream': True,
+                        'think': False
+                    },
+                    preload_content=False,
+                    retries=0
+                )
+            ]
+        )
+        mock_show_response.json.assert_called_once_with()
+        mock_chat_response.read_chunked.assert_called_once_with()
+        mock_show_response.close.assert_called_once_with()
+        mock_chat_response.close.assert_called_once_with()
+
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '')
+
+
     def test_ollama_stdin_empty(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
@@ -468,7 +603,7 @@ class TestOllama(unittest.TestCase):
         mock_show_response.close.assert_called_once_with()
 
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), 'Error: Unknown model "model-name" (500)\n')
+        self.assertEqual(stderr.getvalue(), '\nError: Unknown model "model-name" (500)\n')
 
 
     def test_ollama_chat_error(self):
@@ -525,7 +660,7 @@ class TestOllama(unittest.TestCase):
         mock_chat_response.close.assert_called_once_with()
 
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), 'Error: Unknown model "model-name" (500)\n')
+        self.assertEqual(stderr.getvalue(), '\nError: Unknown model "model-name" (500)\n')
 
 
     def test_ollama_chunk_error(self):

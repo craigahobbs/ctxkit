@@ -2,12 +2,15 @@
 # https://github.com/craigahobbs/ctxkit/blob/main/LICENSE
 
 import io
+import os
 import unittest
 import unittest.mock
 
 import urllib3
 
 from ctxkit.main import main
+
+from .test_main import create_test_files
 
 
 class TestGrok(unittest.TestCase):
@@ -53,6 +56,58 @@ class TestGrok(unittest.TestCase):
         mock_grok_response.close.assert_called_once()
 
         self.assertEqual(stdout.getvalue(), 'Goodbye\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_grok_output(self):
+        with create_test_files([
+                 ('test.txt', 'test text')
+             ]) as temp_dir, \
+             unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            test_path = os.path.join(temp_dir, 'test.txt')
+
+            # Create a mock Response object for the HTTP response
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: [DONE]'
+            ]
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            main(['-m', 'Hello', '-i', test_path, '--grok', 'model-name', '-o', test_path])
+
+            with open(test_path, 'r', encoding='utf-8') as output:
+                test_text = output.read()
+            self.assertEqual(test_text, 'Goodbye\n')
+
+        mock_pool_manager_instance.request.assert_called_once_with(
+            method='POST',
+            url='https://api.x.ai/v1/chat/completions',
+            headers={
+                'Authorization': 'Bearer XXXX',
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream'
+            },
+            json={
+                'model': 'model-name',
+                'messages': [
+                    {'role': 'user', 'content': 'Hello\n\ntest text'}
+                ],
+                'stream': True
+            },
+            preload_content=False,
+            retries=0
+        )
+        mock_grok_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), '')
         self.assertEqual(stderr.getvalue(), '')
 
 
@@ -372,6 +427,56 @@ data:  {"content": "Goodbye"}}]}
         self.assertEqual(stderr.getvalue(), '')
 
 
+    def test_grok_stdin_output(self):
+        with unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the HTTP response
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: [DONE]'
+            ]
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            with create_test_files([]) as temp_dir:
+                output_path = os.path.join(temp_dir, 'output.txt')
+                main(['--grok', 'model-name', '-o', output_path])
+                with open(output_path, 'r', encoding='utf-8') as output:
+                    output_text = output.read()
+            self.assertEqual(output_text, 'Goodbye\n')
+
+        mock_pool_manager_instance.request.assert_called_once_with(
+            method='POST',
+            url='https://api.x.ai/v1/chat/completions',
+            headers={
+                'Authorization': 'Bearer XXXX',
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream'
+            },
+            json={
+                'model': 'model-name',
+                'messages': [
+                    {'role': 'user', 'content': 'Hello'}
+                ],
+                'stream': True
+            },
+            preload_content=False,
+            retries=0
+        )
+        mock_grok_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '')
+
+
     def test_grok_stdin_error(self):
         with unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
@@ -412,7 +517,7 @@ data:  {"content": "Goodbye"}}]}
         mock_grok_response.close.assert_called_once()
 
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), 'Error: xAI API failed with status 500\n')
+        self.assertEqual(stderr.getvalue(), '\nError: xAI API failed with status 500\n')
 
 
     def test_grok_error(self):
@@ -454,7 +559,7 @@ data:  {"content": "Goodbye"}}]}
         mock_grok_response.close.assert_called_once()
 
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), 'Error: xAI API failed with status 500\n')
+        self.assertEqual(stderr.getvalue(), '\nError: xAI API failed with status 500\n')
 
 
     def test_grok_no_api_key(self):
@@ -467,4 +572,4 @@ data:  {"content": "Goodbye"}}]}
 
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), 'Error: XAI_API_KEY environment variable not set\n')
+        self.assertEqual(stderr.getvalue(), '\nError: XAI_API_KEY environment variable not set\n')

@@ -28,6 +28,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(prog='ctxkit')
     parser.add_argument('-g', '--config-help', action='store_true',
                         help='display the JSON configuration file format')
+    parser.add_argument('-o', '--output', metavar='PATH',
+                        help='output to the file path')
     items_group = parser.add_argument_group('Prompt Items')
     items_group.add_argument('-c', '--config', metavar='PATH', dest='items', action=TypedItemAction, item_type='config',
                              help='process the JSON configuration file path or URL')
@@ -59,8 +61,7 @@ def main(argv=None):
     api_group.add_argument('--topp', metavar='NUM', type=float,
                            help='set the model response top_p')
     args = parser.parse_args(args=argv)
-    model_type = (args.ollama and 'ollama') or (args.grok and 'grok')
-    model_name = args.ollama or args.grok
+    model_type, _ = _get_model_args(args)
 
     # Show configuration file format?
     if args.config_help:
@@ -92,22 +93,14 @@ def main(argv=None):
     if model_type and not config['items']:
         try:
             prompt = sys.stdin.read()
-            has_chunks = False
-            if model_type == 'grok':
-                for chunk in grok_chat(pool_manager, model_name, prompt, args.temp, args.topp):
-                    print(chunk, end='', flush=True)
-                    has_chunks = True
-            else: # model_type == 'ollama':
-                for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp, args.topp):
-                    print(chunk, end='', flush=True)
-                    has_chunks = True
-            if has_chunks:
-                print()
+            if args.output:
+                with open(args.output, 'w', encoding='utf-8') as output:
+                    _output_api_call(args, pool_manager, output, prompt)
+            else:
+                _output_api_call(args, pool_manager, sys.stdout, prompt)
             return
         except Exception as exc:
-            if has_chunks:
-                print(file=sys.stderr)
-            print(f'Error: {exc}', file=sys.stderr)
+            print(f'\nError: {exc}', file=sys.stderr)
             sys.exit(2)
 
     # No items specified
@@ -115,33 +108,51 @@ def main(argv=None):
         parser.error('no prompt items specified')
 
     # Process the configuration
-    has_chunks = False
     try:
         # Pass prompt to an AI?
         if model_type:
-            # Print AI response chunks to stdout
             prompt = process_config(pool_manager, config, {})
-            if model_type == 'grok':
-                for chunk in grok_chat(pool_manager, model_name, prompt, args.temp, args.topp):
-                    print(chunk, end='', flush=True)
-                    has_chunks = True
-            else: # model_type == 'ollama':
-                for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp, args.topp):
-                    print(chunk, end='', flush=True)
-                    has_chunks = True
-            if has_chunks:
-                print()
+            if args.output:
+                with open(args.output, 'w', encoding='utf-8') as output:
+                    _output_api_call(args, pool_manager, output, prompt)
+            else:
+                _output_api_call(args, pool_manager, sys.stdout, prompt)
         else:
-            # Print prompt items to stdout
-            for ix_item, item_text in enumerate(process_config_items(pool_manager, config, {})):
-                if ix_item != 0:
-                    print()
-                print(item_text)
+            if args.output:
+                prompt = process_config(pool_manager, config, {})
+                with open(args.output, 'w', encoding='utf-8') as output:
+                    print(prompt, file=output)
+            else:
+                for ix_item, item_text in enumerate(process_config_items(pool_manager, config, {})):
+                    if ix_item != 0:
+                        print()
+                    print(item_text)
     except Exception as exc:
-        if has_chunks:
-            print(file=sys.stderr)
-        print(f'Error: {exc}', file=sys.stderr)
+        print(f'\nError: {exc}', file=sys.stderr)
         sys.exit(2)
+
+
+# Helper to get the model_type and model_name
+def _get_model_args(args):
+    model_type = (args.ollama and 'ollama') or (args.grok and 'grok')
+    model_name = args.ollama or args.grok
+    return model_type, model_name
+
+
+# Helper to output the response from stdin to passed to an API
+def _output_api_call(args, pool_manager, output, prompt):
+    model_type, model_name = _get_model_args(args)
+    has_chunks = False
+    if model_type == 'grok':
+        for chunk in grok_chat(pool_manager, model_name, prompt, args.temp, args.topp):
+            print(chunk, end='', file=output, flush=True)
+            has_chunks = True
+    else: # model_type == 'ollama':
+        for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp, args.topp):
+            print(chunk, end='', file=output, flush=True)
+            has_chunks = True
+    if has_chunks:
+        print(file=output)
 
 
 # Process a configuration model and return the prompt string
