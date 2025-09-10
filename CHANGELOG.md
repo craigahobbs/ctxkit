@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.8 (2025-09-10)
+
+- [2af7138](https://github.com/craigahobbs/ctxkit/commit/2af7138) - add -o argument
+
 ## 1.2.7 (2025-09-10)
 
 - [d365190](https://github.com/craigahobbs/ctxkit/commit/d365190) - add argument groups
