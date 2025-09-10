@@ -197,6 +197,9 @@ union CtxKitItem
     # File path or URL text
     string include
 
+    # File path or URL template text
+    string template
+
     # File path or URL as a text file
     string file
 
