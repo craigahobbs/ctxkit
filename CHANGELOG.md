@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.9 (2025-09-10)
+
+- [9bf6b78](https://github.com/craigahobbs/ctxkit/commit/9bf6b78) - update readme
+
 ## 1.2.8 (2025-09-10)
 
 - [2af7138](https://github.com/craigahobbs/ctxkit/commit/2af7138) - add -o argument
