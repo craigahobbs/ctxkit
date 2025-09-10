@@ -123,7 +123,7 @@ or a URL using the syntax, `{{var}}`. A variable's value is specified using the 
 example:
 
 ```sh
-ctxkit -v package ctxkit -m 'Write a 100 word or less description of the Python package named "{{package}}"'
+ctxkit -v package ctxkit -m 'Write brief overview of the Python package, "{{package}}"'
 ```
 
 
