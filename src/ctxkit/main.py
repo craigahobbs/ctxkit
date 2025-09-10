@@ -38,7 +38,7 @@ def main(argv=None):
                         help='add the file path or URL as a text file')
     parser.add_argument('-d', '--dir', metavar='PATH', dest='items', action=TypedItemAction,
                         help="add a directory's text files")
-    parser.add_argument('-x', '--ext', metavar='EXT', action='append', default=[],
+    parser.add_argument('-x', '--ext', action='append', default=[],
                         help='add a directory text file extension')
     parser.add_argument('-l', '--depth', metavar='N', type=int, default=0,
                         help='the maximum directory depth, default is 0 (infinite)')
@@ -49,8 +49,10 @@ def main(argv=None):
                         help='pass to the Ollama API')
     group.add_argument('--grok', metavar='MODEL',
                         help='pass to the Grok API')
-    parser.add_argument('--temp', metavar='TEMP', type=float, default=0.7,
-                        help='the LLM temperature (default is 0.7)')
+    parser.add_argument('--temp', type=float,
+                        help='set the response temperature')
+    parser.add_argument('--topp', type=float,
+                        help='set the response top_p')
     args = parser.parse_args(args=argv)
     model_type = (args.ollama and 'ollama') or (args.grok and 'grok')
     model_name = args.ollama or args.grok
@@ -85,11 +87,11 @@ def main(argv=None):
             prompt = sys.stdin.read()
             has_chunks = False
             if model_type == 'grok':
-                for chunk in grok_chat(pool_manager, model_name, prompt, temperature=args.temp):
+                for chunk in grok_chat(pool_manager, model_name, prompt, args.temp, args.topp):
                     print(chunk, end='', flush=True)
                     has_chunks = True
             else: # model_type == 'ollama':
-                for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp):
+                for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp, args.topp):
                     print(chunk, end='', flush=True)
                     has_chunks = True
             if has_chunks:
@@ -113,11 +115,11 @@ def main(argv=None):
             # Print AI response chunks to stdout
             prompt = process_config(pool_manager, config, {})
             if model_type == 'grok':
-                for chunk in grok_chat(pool_manager, model_name, prompt, temperature=args.temp):
+                for chunk in grok_chat(pool_manager, model_name, prompt, args.temp, args.topp):
                     print(chunk, end='', flush=True)
                     has_chunks = True
             else: # model_type == 'ollama':
-                for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp):
+                for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp, args.topp):
                     print(chunk, end='', flush=True)
                     has_chunks = True
             if has_chunks:

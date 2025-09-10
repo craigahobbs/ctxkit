@@ -45,7 +45,96 @@ class TestGrok(unittest.TestCase):
                 'messages': [
                     {'role': 'user', 'content': 'Hello'}
                 ],
-                'temperature': 0.7,
+                'stream': True
+            },
+            preload_content=False,
+            retries=0
+        )
+        mock_grok_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), 'Goodbye\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_grok_temperature(self):
+        with unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the HTTP response
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: [DONE]'
+            ]
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            main(['-m', 'Hello', '--grok', 'model-name', '--temp', '0.2'])
+
+        mock_pool_manager_instance.request.assert_called_once_with(
+            method='POST',
+            url='https://api.x.ai/v1/chat/completions',
+            headers={
+                'Authorization': 'Bearer XXXX',
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream'
+            },
+            json={
+                'model': 'model-name',
+                'messages': [
+                    {'role': 'user', 'content': 'Hello'}
+                ],
+                'temperature': 0.2,
+                'stream': True
+            },
+            preload_content=False,
+            retries=0
+        )
+        mock_grok_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), 'Goodbye\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_grok_top_p(self):
+        with unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the HTTP response
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: [DONE]'
+            ]
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            main(['-m', 'Hello', '--grok', 'model-name', '--topp', '0.2'])
+
+        mock_pool_manager_instance.request.assert_called_once_with(
+            method='POST',
+            url='https://api.x.ai/v1/chat/completions',
+            headers={
+                'Authorization': 'Bearer XXXX',
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream'
+            },
+            json={
+                'model': 'model-name',
+                'messages': [
+                    {'role': 'user', 'content': 'Hello'}
+                ],
+                'top_p': 0.2,
                 'stream': True
             },
             preload_content=False,
@@ -87,7 +176,6 @@ class TestGrok(unittest.TestCase):
                 'messages': [
                     {'role': 'user', 'content': 'Hello'}
                 ],
-                'temperature': 0.7,
                 'stream': True
             },
             preload_content=False,
@@ -134,7 +222,6 @@ class TestGrok(unittest.TestCase):
                 'messages': [
                     {'role': 'user', 'content': 'Hello'}
                 ],
-                'temperature': 0.7,
                 'stream': True
             },
             preload_content=False,
@@ -182,7 +269,6 @@ data: {"choices": [{"delta": {"content": "Goodbye2"}}]}
                 'messages': [
                     {'role': 'user', 'content': 'Hello'}
                 ],
-                'temperature': 0.7,
                 'stream': True
             },
             preload_content=False,
@@ -230,7 +316,6 @@ data:  {"content": "Goodbye"}}]}
                 'messages': [
                     {'role': 'user', 'content': 'Hello'}
                 ],
-                'temperature': 0.7,
                 'stream': True
             },
             preload_content=False,
@@ -276,7 +361,6 @@ data:  {"content": "Goodbye"}}]}
                 'messages': [
                     {'role': 'user', 'content': 'Hello'}
                 ],
-                'temperature': 0.7,
                 'stream': True
             },
             preload_content=False,
@@ -320,7 +404,6 @@ data:  {"content": "Goodbye"}}]}
                 'messages': [
                     {'role': 'user', 'content': 'Hello'}
                 ],
-                'temperature': 0.7,
                 'stream': True
             },
             preload_content=False,
@@ -363,7 +446,6 @@ data:  {"content": "Goodbye"}}]}
                 'messages': [
                     {'role': 'user', 'content': 'Hello'}
                 ],
-                'temperature': 0.7,
                 'stream': True
             },
             preload_content=False,

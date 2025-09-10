@@ -14,7 +14,7 @@ def _get_ollama_url(path):
 
 
 # Call the Ollama API and yield the response chunk strings
-def ollama_chat(pool_manager, model, prompt, temperature=None):
+def ollama_chat(pool_manager, model, prompt, temperature=None, top_p=None):
     # Is this a thinking model?
     url_show = _get_ollama_url('/api/show')
     data_show = {'model': model}
@@ -34,12 +34,15 @@ def ollama_chat(pool_manager, model, prompt, temperature=None):
         'messages': [
             {'role': 'user', 'content': prompt}
         ],
-        'options': {
-            'temperature': temperature
-        },
         'stream': True,
         'think': is_thinking,
     }
+    if temperature is not None or top_p is not None:
+        data_chat['options'] = {}
+    if temperature is not None:
+        data_chat['options']['temperature'] = temperature
+    if top_p is not None:
+        data_chat['options']['top_p'] = top_p
     response_chat = pool_manager.request('POST', url_chat, json=data_chat, preload_content=False, retries=0)
     try:
         if response_chat.status != 200:

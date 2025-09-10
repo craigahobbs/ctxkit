@@ -81,7 +81,8 @@ the following types: configuration files (`-c`), messages (`-m`), file path or U
 
 ```
 usage: ctxkit [-h] [-g] [-c PATH] [-m TEXT] [-i PATH] [-f PATH] [-d PATH]
-              [-x EXT] [-l N] [-v VAR EXPR]
+              [-x EXT] [-l N] [-v VAR EXPR] [--ollama MODEL | --grok MODEL]
+              [--temp TEMP] [--topp TOPP]
 
 options:
   -h, --help          show this help message and exit
@@ -94,6 +95,10 @@ options:
   -x, --ext EXT       add a directory text file extension
   -l, --depth N       the maximum directory depth, default is 0 (infinite)
   -v, --var VAR EXPR  define a variable (reference with "{{var}}")
+  --ollama MODEL      pass to the Ollama API
+  --grok MODEL        pass to the Grok API
+  --temp TEMP         set the response temperature
+  --topp TOPP         set the response top_p
 ```
 
 
