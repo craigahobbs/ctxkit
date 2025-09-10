@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.6 (2025-09-10)
+
+- [dc62dcf](https://github.com/craigahobbs/ctxkit/commit/dc62dcf) - add -t argument
+
 ## 1.2.5 (2025-09-09)
 
 - [26afaea](https://github.com/craigahobbs/ctxkit/commit/26afaea) - add --topp argument
