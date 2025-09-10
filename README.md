@@ -26,8 +26,11 @@ print('Hello, world!')
 
 ### API Calling
 
-ctxkit supports calling the Ollama API and the Grok (xAI) API via the `--ollama` and `--grok`
-arguments, respectively.
+ctxkit supports calling the
+[Ollama API](https://ollama.com/)
+and the
+[Grok (xAI) API](https://docs.x.ai/docs/tutorial)
+via the `--ollama` and `--grok` arguments, respectively.
 
 **Ollama**
 
@@ -36,6 +39,9 @@ ctxkit -m 'Hello!' --ollama gpt-oss:20b
 ```
 
 **Grok**
+
+Click here to create an [xAI API key](https://docs.x.ai/docs/tutorial).
+
 
 ```sh
 export XAI_API_KEY=<key>
@@ -109,7 +115,7 @@ or a URL using the syntax, `{{var}}`. A variable's value is specified using the 
 example:
 
 ```sh
-ctxkit -v package ctxkit -m 'Write a 100 word or less description of the Python "{{package}}"'
+ctxkit -v package ctxkit -m 'Write a 100 word or less description of the Python package named "{{package}}"'
 ```
 
 
@@ -138,6 +144,20 @@ The "base" variable specifies the base sub-module name. To generate the prompt, 
 
 ```sh
 ctxkit -v base main -v scope "main function" -c unittest.json
+```
+
+This outputs:
+
+```
+Write the unit test methods to cover the code in the main function.
+
+<src/my_package/main.py>
+# main.py
+</src/my_package/main.py>
+
+<src/tests/test_main.py>
+# test_main.py
+</src/tests/test_main.py>
 ```
 
 
