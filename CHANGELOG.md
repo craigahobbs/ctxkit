@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.7 (2025-09-10)
+
+- [d365190](https://github.com/craigahobbs/ctxkit/commit/d365190) - add argument groups
+
 ## 1.2.6 (2025-09-10)
 
 - [dc62dcf](https://github.com/craigahobbs/ctxkit/commit/dc62dcf) - add -t argument
