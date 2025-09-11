@@ -24,7 +24,28 @@ print('Hello, world!')
 ```
 
 
-### API Calling
+## Installation
+
+To install ctxkit, enter the following commands in a terminal window:
+
+**macOS and Linux**
+
+```
+python3 -m venv $HOME/venv --upgrade-deps
+. $HOME/venv/bin/activate
+pip install ctxkit
+```
+
+**Windows**
+
+```
+python3 -m venv %USERPROFILE%\venv --upgrade-deps
+%USERPROFILE%\venv\Scripts\activate
+pip install ctxkit
+```
+
+
+## API Calling
 
 ctxkit supports calling the
 [Ollama API](https://ollama.com/)
@@ -55,7 +76,7 @@ echo 'Hello!' | ctxkit --ollama gpt-oss:20b
 ```
 
 
-### Copying Output
+## Copying Output
 
 To copy the output of ctxkit and paste it into your favorite AI chat application, pipe ctxkit's
 output into the clipboard tool for your platform.
@@ -79,44 +100,7 @@ ctxkit -m 'Hello!' | xsel -ib
 ```
 
 
-## Usage
-
-Using the `ctxkit` command line application, you can add any number of ordered *context items* of
-the following types: configuration files (`-c`), messages (`-m`), file path or URL content (`-i` and
-`-f`), and directories (`-d`).
-
-```
-usage: ctxkit [-h] [-g] [-o PATH] [-c PATH] [-m TEXT] [-i PATH] [-t PATH]
-              [-f PATH] [-d PATH] [-v VAR EXPR] [-x EXT] [-l INT]
-              [--ollama MODEL | --grok MODEL] [--temp NUM] [--topp NUM]
-
-options:
-  -h, --help           show this help message and exit
-  -g, --config-help    display the JSON configuration file format
-  -o, --output PATH    output to the file path
-
-Prompt Items:
-  -c, --config PATH    process the JSON configuration file path or URL
-  -m, --message TEXT   add a prompt message
-  -i, --include PATH   add the file path or URL text
-  -t, --template PATH  add the file path or URL template text
-  -f, --file PATH      add the file path or URL as a text file
-  -d, --dir PATH       add a directory's text files
-  -v, --var VAR EXPR   define a variable (reference with "{{var}}")
-
-Directory Options:
-  -x, --ext EXT        add a directory text file extension
-  -l, --depth INT      the maximum directory depth, default is 0 (infinite)
-
-API Calling:
-  --ollama MODEL       pass to the Ollama API
-  --grok MODEL         pass to the Grok API
-  --temp NUM           set the model response temperature
-  --topp NUM           set the model response top_p
-```
-
-
-### Variables
+## Variables
 
 You can specify one or more variable references in a message's text, a file path, a directory path,
 or a URL using the syntax, `{{var}}`. A variable's value is specified using the `-v` argument. For
@@ -169,7 +153,44 @@ Write the unit test methods to cover the code in the main function.
 ```
 
 
-### Configuration File Format
+## Usage
+
+Using the `ctxkit` command line application, you can add any number of ordered *context items* of
+the following types: configuration files (`-c`), messages (`-m`), file path or URL content (`-i` and
+`-f`), and directories (`-d`).
+
+```
+usage: ctxkit [-h] [-g] [-o PATH] [-c PATH] [-m TEXT] [-i PATH] [-t PATH]
+              [-f PATH] [-d PATH] [-v VAR EXPR] [-x EXT] [-l INT]
+              [--ollama MODEL | --grok MODEL] [--temp NUM] [--topp NUM]
+
+options:
+  -h, --help           show this help message and exit
+  -g, --config-help    display the JSON configuration file format
+  -o, --output PATH    output to the file path
+
+Prompt Items:
+  -c, --config PATH    process the JSON configuration file path or URL
+  -m, --message TEXT   add a prompt message
+  -i, --include PATH   add the file path or URL text
+  -t, --template PATH  add the file path or URL template text
+  -f, --file PATH      add the file path or URL as a text file
+  -d, --dir PATH       add a directory's text files
+  -v, --var VAR EXPR   define a variable (reference with "{{var}}")
+
+Directory Options:
+  -x, --ext EXT        add a directory text file extension
+  -l, --depth INT      the maximum directory depth, default is 0 (infinite)
+
+API Calling:
+  --ollama MODEL       pass to the Ollama API
+  --grok MODEL         pass to the Grok API
+  --temp NUM           set the model response temperature
+  --topp NUM           set the model response top_p
+```
+
+
+## Configuration File Format
 
 The ctxkit `-g` argument outputs the JSON configuration file format defined using the
 [Schema Markdown Language](https://craigahobbs.github.io/schema-markdown-js/language/).
@@ -239,6 +260,6 @@ struct CtxKitVariable
 This package is developed using [python-build](https://github.com/craigahobbs/python-build#readme).
 It was started using [python-template](https://github.com/craigahobbs/python-template#readme) as follows:
 
-~~~
+```
 template-specialize python-template/template/ ctxkit/ -k package ctxkit -k name 'Craig A. Hobbs' -k email 'craigahobbs@gmail.com' -k github 'craigahobbs' -k noapi 1
-~~~
+```
