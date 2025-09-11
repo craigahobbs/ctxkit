@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.10 (2025-09-10)
+
+- [20ca079](https://github.com/craigahobbs/ctxkit/commit/20ca079) - update readme
+
+- [33caf27](https://github.com/craigahobbs/ctxkit/commit/33caf27) - update readme
+
 ## 1.2.9 (2025-09-10)
 
 - [9bf6b78](https://github.com/craigahobbs/ctxkit/commit/9bf6b78) - update readme
