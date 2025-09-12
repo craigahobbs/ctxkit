@@ -61,14 +61,47 @@ class TestMain(unittest.TestCase):
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             output_path = os.path.join(temp_dir, 'output.txt')
+            backup_path = f'{output_path}.bak'
+
             main(['-m', 'Hello', '-m', 'Goodbye', '-o', output_path])
+
             with open(output_path, 'r', encoding='utf-8') as output:
                 output_text = output.read()
+
+            self.assertFalse(os.path.isfile(backup_path))
+
         self.assertEqual(output_text, '''\
 Hello
 
 Goodbye
 ''')
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_output_backup(self):
+        with create_test_files([
+            ('output.txt', 'Hello')
+        ]) as temp_dir, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            output_path = os.path.join(temp_dir, 'output.txt')
+            backup_path = f'{output_path}.bak'
+
+            main(['-m', 'Hello', '-m', 'Goodbye', '-o', output_path, '-b'])
+
+            with open(output_path, 'r', encoding='utf-8') as output:
+                output_text = output.read()
+
+            with open(backup_path, 'r', encoding='utf-8') as backup:
+                backup_text = backup.read()
+
+        self.assertEqual(output_text, '''\
+Hello
+
+Goodbye
+''')
+        self.assertEqual(backup_text, 'Hello')
         self.assertEqual(stdout.getvalue(), '')
         self.assertEqual(stderr.getvalue(), '')
 

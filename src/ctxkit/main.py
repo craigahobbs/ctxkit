@@ -10,6 +10,7 @@ from functools import partial
 import json
 import os
 import re
+import shutil
 import sys
 
 import schema_markdown
@@ -30,6 +31,8 @@ def main(argv=None):
                         help='display the JSON configuration file format')
     parser.add_argument('-o', '--output', metavar='PATH',
                         help='output to the file path')
+    parser.add_argument('-b', '--backup', action='store_true',
+                        help='backup the output file with ".bak" extension')
     items_group = parser.add_argument_group('Prompt Items')
     items_group.add_argument('-c', '--config', metavar='PATH', dest='items', action=TypedItemAction, item_type='config',
                              help='process the JSON configuration file path or URL')
@@ -88,6 +91,10 @@ def main(argv=None):
 
     # Initialize urllib3 PoolManager
     pool_manager = urllib3.PoolManager()
+
+    # Backup the output file, if requested
+    if args.backup and args.output and os.path.isfile(args.output):
+        shutil.copy(args.output, f'{args.output}.bak')
 
     # Pass stdin to an AI?
     if model_type and not config['items']:
