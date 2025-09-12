@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.11 (2025-09-12)
+
+- [f748cdc](https://github.com/craigahobbs/ctxkit/commit/f748cdc) - add -b argument
+
 ## 1.2.10 (2025-09-10)
 
 - [20ca079](https://github.com/craigahobbs/ctxkit/commit/20ca079) - update readme
