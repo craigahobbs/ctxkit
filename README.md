@@ -160,7 +160,7 @@ the following types: configuration files (`-c`), messages (`-m`), file path or U
 `-f`), and directories (`-d`).
 
 ```
-usage: ctxkit [-h] [-g] [-o PATH] [-c PATH] [-m TEXT] [-i PATH] [-t PATH]
+usage: ctxkit [-h] [-g] [-o PATH] [-b] [-c PATH] [-m TEXT] [-i PATH] [-t PATH]
               [-f PATH] [-d PATH] [-v VAR EXPR] [-x EXT] [-l INT]
               [--ollama MODEL | --grok MODEL] [--temp NUM] [--topp NUM]
 
@@ -168,6 +168,7 @@ options:
   -h, --help           show this help message and exit
   -g, --config-help    display the JSON configuration file format
   -o, --output PATH    output to the file path
+  -b, --backup         backup the output file with ".bak" extension
 
 Prompt Items:
   -c, --config PATH    process the JSON configuration file path or URL
