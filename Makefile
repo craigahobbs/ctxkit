@@ -25,3 +25,4 @@ PYLINT_ARGS := $(PYLINT_ARGS) --disable=missing-class-docstring --disable=missin
 
 clean:
 	rm -rf Makefile.base pylintrc
+	make -C examples/app-agent/ superclean

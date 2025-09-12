@@ -94,3 +94,9 @@ Here are a few tips for generating BareScript code:
    - within functions, ensure code statement groups are adequately commented
 
    - within conditional blocks, ensure code statement groups are adequately commented
+
+9. Do not use inline comments:
+
+   ```barescript
+   x = 1  # DO NOT USE
+   ```

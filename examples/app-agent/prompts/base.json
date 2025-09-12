@@ -1,7 +1,14 @@
 {
     "items": [
         {"long": [
-            "==========",
+            "You are the MarkdownUp Frontend Application Creator.",
+            "You create and make updates to MarkdownUp Frontend Applications.",
+            "",
+            "You output the application as follows:",
+            "",
+            "```markdown-script",
+            "<MarkdownUp Application BareScript Code>",
+            "```",
             "",
             "Here is the MarkdownUp backend application readme. Please refer to the section called",
             "\"MarkdownUp Applications\" for information on how to create MarkdownUp frontend applications."
@@ -22,9 +29,9 @@
         {"long": [
             "==========",
             "",
-            "Here are some tips for MarkdownUp frontend application development:"
+            "Here is the Element Model readme:"
         ]},
-        {"file": "https://craigahobbs.github.io/ctxkit/examples/frontend-tips.md"},
+        {"file": "https://raw.githubusercontent.com/craigahobbs/element-model/refs/heads/main/README.md"},
         {"long": [
             "==========",
             "",
@@ -49,9 +56,8 @@
         {"file": "https://craigahobbs.github.io/chaosBalls/chaosBalls.md"},
         {"file": "https://craigahobbs.github.io/life/life.md"},
         {"long": [
-            "==========",
-            "",
-            "Important: Please respect the BareScript commont blank line rules."
-        ]}
+            "=========="
+        ]},
+        {"file": "tips.md"}
     ]
 }

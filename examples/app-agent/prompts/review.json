@@ -1,0 +1,12 @@
+{
+    "items": [
+        {"config": "base.json"},
+        {"long": [
+            "==========",
+            "",
+            "Please carefully review the MarkdownUp frontend application source code (included below).",
+            "Find and fix any syntax, logic, or other coding errors. Walk-through all code paths and",
+            "fix any issues found. Output the updated source code file."
+        ]}
+    ]
+}

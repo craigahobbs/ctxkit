@@ -1,0 +1,10 @@
+{
+    "items": [
+        {"config": "base.json"},
+        {"long": [
+            "==========",
+            "",
+            "Please make the following update to the MarkdownUp frontend application (included below):"
+        ]}
+    ]
+}
