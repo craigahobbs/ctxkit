@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0 (2025-09-16)
+
+- [a92651c](https://github.com/craigahobbs/ctxkit/commit/a92651c) - add Claude \(Anthropic\) API support
+
 ## 1.3.3 (2025-09-16)
 
 - [afb473a](https://github.com/craigahobbs/ctxkit/commit/afb473a) - add --maxtok argument
