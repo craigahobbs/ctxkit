@@ -45,27 +45,30 @@ pip install ctxkit
 
 ## Calling APIs
 
-ctxkit supports calling the
-[Ollama API](https://ollama.com/)
-and the
-[Grok (xAI) API](https://docs.x.ai/docs/tutorial)
-via the `--ollama` and `--grok` arguments, respectively.
+ctxkit supports the following APIs:
 
-**Ollama**
+`--claude` - [Claude (Anthropic) API](https://console.anthropic.com/dashboard/)
 
 ```sh
-ctxkit -m 'Hello!' --ollama gpt-oss:20b
+export ANTHROPIC_API_KEY=<key>
+ctxkit -m 'Hello!' --claude claude-3-5-haiku-latest
 ```
 
-**Grok**
-
-Click here to create an [xAI API key](https://docs.x.ai/docs/tutorial).
-
+`--grok` - [Grok (xAI) API](https://docs.x.ai/docs/tutorial)
 
 ```sh
 export XAI_API_KEY=<key>
 ctxkit -m 'Hello!' --grok grok-3
 ```
+
+`--ollama` - [Ollama API](https://ollama.com/)
+
+```sh
+ctxkit -m 'Hello!' --ollama gpt-oss:20b
+```
+
+
+### Prompt from `stdin`
 
 You can call an API with a prompt from `stdin` by passing no prompt items:
 
@@ -178,8 +181,8 @@ the following types: configuration files (`-c`), messages (`-m`), file path or U
 ```
 usage: ctxkit [-h] [-g] [-e] [-o PATH] [-b] [-c PATH] [-m TEXT] [-i PATH]
               [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-s PATH] [-x EXT]
-              [-l INT] [--ollama MODEL | --grok MODEL] [--temp NUM]
-              [--topp NUM] [--maxtok NUM]
+              [-l INT] [--claude MODEL | --grok MODEL | --ollama MODEL]
+              [--temp NUM] [--topp NUM] [--maxtok NUM]
 
 options:
   -h, --help           show this help message and exit
@@ -205,8 +208,9 @@ Directory Options:
   -l, --depth INT      the maximum directory depth, default is 0 (infinite)
 
 API Calling:
-  --ollama MODEL       pass to the Ollama API
+  --claude MODEL       pass to the Claude API
   --grok MODEL         pass to the Grok API
+  --ollama MODEL       pass to the Ollama API
   --temp NUM           set the model response temperature
   --topp NUM           set the model response top_p
   --maxtok NUM         set the model response max tokens

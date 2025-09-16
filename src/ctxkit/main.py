@@ -16,6 +16,7 @@ import sys
 import schema_markdown
 import urllib3
 
+from .claude import claude_chat
 from .grok import grok_chat
 from .ollama import ollama_chat
 
@@ -53,8 +54,9 @@ def main(argv=None):
     dir_group.add_argument('-l', '--depth', metavar='INT', type=int, default=0, help='the maximum directory depth, default is 0 (infinite)')
     api_group = parser.add_argument_group('API Calling')
     group = api_group.add_mutually_exclusive_group()
-    group.add_argument('--ollama', metavar='MODEL', help='pass to the Ollama API')
+    group.add_argument('--claude', metavar='MODEL', help='pass to the Claude API')
     group.add_argument('--grok', metavar='MODEL', help='pass to the Grok API')
+    group.add_argument('--ollama', metavar='MODEL', help='pass to the Ollama API')
     api_group.add_argument('--temp', metavar='NUM', type=float, help='set the model response temperature')
     api_group.add_argument('--topp', metavar='NUM', type=float, help='set the model response top_p')
     api_group.add_argument('--maxtok', metavar='NUM', type=int, help='set the model response max tokens')
@@ -172,6 +174,7 @@ You can include explanatory text outside of these file tags.'''
 
 # Map of model type (e.g. 'ollama') to model API function
 _API_FUNCTIONS = {
+    'claude': claude_chat,
     'grok': grok_chat,
     'ollama': ollama_chat
 }
@@ -197,8 +200,8 @@ class TypedItemAction(argparse.Action):
 
 # Helper to get the model_type and model_name
 def _get_model_args(args):
-    model_type = (args.ollama and 'ollama') or (args.grok and 'grok')
-    model_name = args.ollama or args.grok
+    model_type = (args.claude and 'claude') or (args.grok and 'grok') or (args.ollama and 'ollama')
+    model_name = args.claude or args.grok or args.ollama
     return model_type, model_name
 
 

@@ -76,7 +76,8 @@ def grok_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_
             # Parse the chunk
             try:
                 chunk = json.loads(data)
-            except:
+            except json.JSONDecodeError:
+                # If JSON parsing fails, save as prefix for next iteration
                 data_prefix = data
                 continue
 
