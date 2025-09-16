@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0 (2025-09-15)
+
+- [0c77bc3](https://github.com/craigahobbs/ctxkit/commit/0c77bc3) - add the -s and --extract arguments
+
 ## 1.2.11 (2025-09-12)
 
 - [f748cdc](https://github.com/craigahobbs/ctxkit/commit/f748cdc) - add -b argument
