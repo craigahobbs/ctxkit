@@ -168,17 +168,19 @@ the following types: configuration files (`-c`), messages (`-m`), file path or U
 `-f`), and directories (`-d`).
 
 ```
-usage: ctxkit [-h] [-g] [-o PATH] [-b] [-s PATH] [-c PATH] [-m TEXT] [-i PATH]
-              [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-x EXT] [-l INT]
-              [--ollama MODEL | --grok MODEL] [--extract] [--temp NUM]
+usage: ctxkit [-h] [-g] [-e] [-o PATH] [-b] [-c PATH] [-m TEXT] [-i PATH]
+              [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-s PATH] [-x EXT]
+              [-l INT] [--ollama MODEL | --grok MODEL] [--temp NUM]
               [--topp NUM]
 
 options:
   -h, --help           show this help message and exit
   -g, --config-help    display the JSON configuration file format
+
+Output Options:
+  -e, --extract        extract response files
   -o, --output PATH    output to the file path
-  -b, --backup         backup the output file with ".bak" extension
-  -s, --system PATH    the system prompt file path, "" for no system prompt
+  -b, --backup         backup output files with ".bak" extension
 
 Prompt Items:
   -c, --config PATH    process the JSON configuration file path or URL
@@ -188,6 +190,7 @@ Prompt Items:
   -f, --file PATH      add the file path or URL as a text file
   -d, --dir PATH       add a directory's text files
   -v, --var VAR EXPR   define a variable (reference with "{{var}}")
+  -s, --system PATH    the system prompt file path, "" for no system prompt
 
 Directory Options:
   -x, --ext EXT        add a directory text file extension
@@ -196,7 +199,6 @@ Directory Options:
 API Calling:
   --ollama MODEL       pass to the Ollama API
   --grok MODEL         pass to the Grok API
-  --extract            extract response files - USE WITH CAUTION!
   --temp NUM           set the model response temperature
   --topp NUM           set the model response top_p
 ```

@@ -82,6 +82,44 @@ Goodbye
         self.assertEqual(stderr.getvalue(), '')
 
 
+    def test_system_url(self):
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            # Create a mock Response object for the pull request
+            mock_pull_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_pull_response.status = 200
+            mock_pull_response.data = b'You are a friendly assistant'
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_pull_response
+
+            main(['-m', 'Hello', '-s', 'https://test.local'])
+        self.assertEqual(stdout.getvalue(), '''\
+<system>
+You are a friendly assistant
+</system>
+
+Hello
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_system_not_found(self):
+        with create_test_files([]) as temp_dir, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            system_path = os.path.join(temp_dir, 'system.txt')
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '-m', 'Goodbye', '-s', system_path])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertTrue(stderr.getvalue().startswith('\nError: '))
+
+
     def test_no_items(self):
         with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
@@ -171,14 +209,22 @@ test text
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'file.txt')
             file_path2 = os.path.join(temp_dir, 'file2.txt')
+            url_dir = 'http:'
+            nested_path = 'nested'
             response = f'''\
 <{file_path}>
 File #1
 </{file_path}>
 
 <{file_path2}>
+<nested>
 File #2
+</nested>
 </{file_path2}>
+
+<http://localhost>
+Hello
+</http://localhost>
 '''
 
             # Create a mock Response object for the HTTP response
@@ -203,9 +249,11 @@ File #2
 
             with open(file_path2, 'r', encoding='utf-8') as file_:
                 file_text2 = file_.read()
-            self.assertEqual(file_text2, 'File #2')
+            self.assertEqual(file_text2, '<nested>\nFile #2\n</nested>')
 
             self.assertFalse(os.path.exists(f'{file_path2}.bak'))
+            self.assertFalse(os.path.exists(url_dir))
+            self.assertFalse(os.path.exists(nested_path))
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -247,7 +295,8 @@ File #1
 </{file_path}>
 
 <{file_path2}>
-File #2
+File
+#2
 </{file_path2}>
 '''
 
@@ -275,7 +324,7 @@ File #2
 
             with open(file_path2, 'r', encoding='utf-8') as file_:
                 file_text2 = file_.read()
-            self.assertEqual(file_text2, 'File #2')
+            self.assertEqual(file_text2, 'File\n#2')
 
             self.assertFalse(os.path.exists(f'{file_path2}.bak'))
 
@@ -341,6 +390,9 @@ ctxkit: delete
             self.assertFalse(os.path.exists(f'{file_path}.bak'))
             self.assertFalse(os.path.exists(file_path2))
             self.assertFalse(os.path.exists(f'{file_path2}.bak'))
+
+        self.assertEqual(stdout.getvalue(), f'{response}\n')
+        self.assertEqual(stderr.getvalue(), '')
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',

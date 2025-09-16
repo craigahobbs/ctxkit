@@ -29,12 +29,13 @@ def main(argv=None):
     parser = argparse.ArgumentParser(prog='ctxkit')
     parser.add_argument('-g', '--config-help', action='store_true',
                         help='display the JSON configuration file format')
-    parser.add_argument('-o', '--output', metavar='PATH',
-                        help='output to the file path')
-    parser.add_argument('-b', '--backup', action='store_true',
-                        help='backup the output file with ".bak" extension')
-    parser.add_argument('-s', '--system', metavar='PATH',
-                        help='the system prompt file path, "" for no system prompt')
+    output_group = parser.add_argument_group('Output Options')
+    output_group.add_argument('-e', '--extract', action='store_true',
+                              help='extract response files')
+    output_group.add_argument('-o', '--output', metavar='PATH',
+                              help='output to the file path')
+    output_group.add_argument('-b', '--backup', action='store_true',
+                              help='backup output files with ".bak" extension')
     items_group = parser.add_argument_group('Prompt Items')
     items_group.add_argument('-c', '--config', metavar='PATH', dest='items', action=TypedItemAction, item_type='config',
                              help='process the JSON configuration file path or URL')
@@ -50,6 +51,8 @@ def main(argv=None):
                              help="add a directory's text files")
     items_group.add_argument('-v', '--var', nargs=2, metavar=('VAR', 'EXPR'), dest='items', action=TypedItemAction, item_type='var',
                              help='define a variable (reference with "{{var}}")')
+    items_group.add_argument('-s', '--system', metavar='PATH',
+                             help='the system prompt file path or URL, "" for none')
     dir_group = parser.add_argument_group('Directory Options')
     dir_group.add_argument('-x', '--ext', action='append', default=[],
                            help='add a directory text file extension')
@@ -61,8 +64,6 @@ def main(argv=None):
                        help='pass to the Ollama API')
     group.add_argument('--grok', metavar='MODEL',
                        help='pass to the Grok API')
-    api_group.add_argument('--extract', action='store_true',
-                           help='extract response files - USE WITH CAUTION!')
     api_group.add_argument('--temp', metavar='NUM', type=float,
                            help='set the model response temperature')
     api_group.add_argument('--topp', metavar='NUM', type=float,
@@ -96,28 +97,25 @@ def main(argv=None):
     # Initialize urllib3 PoolManager
     pool_manager = urllib3.PoolManager()
 
-    # Backup the output file, if requested
-    if args.backup and args.output and os.path.isfile(args.output):
-        shutil.copy(args.output, f'{args.output}.bak')
+    try:
+        # Get the system prompt
+        system_prompt = DEFAULT_SYSTEM
+        if args.system is not None:
+            system_prompt = _fetch_text(pool_manager, args.system) if args.system else None
 
-    # Create the output directory
-    if args.output:
-        output_dir = os.path.dirname(args.output)
-        if output_dir: # pragma: no branch
-            os.makedirs(output_dir, exist_ok=True)
+        # Output file?
+        if args.output:
+            # Backup the output file, if requested
+            if args.backup and os.path.isfile(args.output):
+                shutil.copy(args.output, f'{args.output}.bak')
 
-    # Read the system prompt, if any
-    system_prompt = DEFAULT_SYSTEM
-    if args.system is not None:
-        if not args.system:
-            system_prompt = None
-        else:
-            with open(args.system, 'r', encoding='utf-8') as system_file:
-                system_prompt = system_file.read().strip()
+            # Create the output directory
+            output_dir = os.path.dirname(args.output)
+            if output_dir: # pragma: no branch
+                os.makedirs(output_dir, exist_ok=True)
 
-    # Pass stdin to an AI?
-    if model_type and not config['items']:
-        try:
+        # Pass stdin to an AI?
+        if model_type and not config['items']:
             prompt = sys.stdin.read()
             if args.output:
                 with open(args.output, 'w', encoding='utf-8') as output:
@@ -125,18 +123,14 @@ def main(argv=None):
             else:
                 _output_api_call(args, pool_manager, sys.stdout, system_prompt, prompt)
             return
-        except Exception as exc:
-            print(f'\nError: {exc}', file=sys.stderr)
-            sys.exit(2)
 
-    # No items specified
-    if not config['items']:
-        parser.error('no prompt items specified')
+        # No items specified
+        if not config['items']:
+            parser.error('no prompt items specified')
 
-    # Process the configuration
-    try:
-        # Pass prompt to an AI?
+        # Process the configuration
         if model_type:
+            # Pass prompt to an AI
             prompt = process_config(pool_manager, config, {})
             if args.output:
                 with open(args.output, 'w', encoding='utf-8') as output:
@@ -144,11 +138,13 @@ def main(argv=None):
             else:
                 _output_api_call(args, pool_manager, sys.stdout, system_prompt, prompt)
         else:
+            # Output to file?
             if args.output:
                 prompt = process_config(pool_manager, config, {})
                 with open(args.output, 'w', encoding='utf-8') as output:
                     print(prompt, file=output)
             else:
+                # Output to stdout
                 items = []
                 if system_prompt:
                     items.append(f'<system>\n{system_prompt}\n</system>')
@@ -157,9 +153,55 @@ def main(argv=None):
                     if ix_item != 0:
                         print()
                     print(item_text)
+
     except Exception as exc:
         print(f'\nError: {exc}', file=sys.stderr)
         sys.exit(2)
+
+
+DEFAULT_SYSTEM = '''\
+You are a helpful assistant that can read and modify files provided in the prompt.
+
+When outputting modified or new files, always provide the complete, updated content of the entire
+file, not just the modified parts. Use this format:
+
+<filename>
+<complete content of the file>
+</filename>
+
+To delete a file, use:
+
+<filename>
+ctxkit: delete
+</filename>
+
+Do not output files that have not changed.
+You can include explanatory text outside of these file tags.'''
+
+
+# Map of model type (e.g. 'ollama') to model API function
+_API_FUNCTIONS = {
+    'grok': grok_chat,
+    'ollama': ollama_chat
+}
+
+
+# argparse argument type for prompt items
+class TypedItemAction(argparse.Action):
+
+    def __init__(self, *args, **kwargs):
+        self.item_type = kwargs.pop('item_type')
+        super().__init__(*args, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        # Initialize the destination list if it doesn't exist
+        items = getattr(namespace, self.dest)
+        if items is None:
+            items = []
+            setattr(namespace, self.dest, items)
+
+        # Append tuple (item_type, value)
+        items.append((self.item_type, values))
 
 
 # Helper to get the model_type and model_name
@@ -188,30 +230,6 @@ def _output_api_call(args, pool_manager, output, system_prompt, prompt):
         _extract_files(''.join(chunks), args.backup)
 
 
-DEFAULT_SYSTEM = '''\
-You are a helpful assistant that can read and modify files provided in the prompt.
-
-Output modified or new files using this format:
-<filename>
-<content of the file>
-</filename>
-
-To delete a file, use:
-<filename>
-ctxkit: delete
-</filename>
-
-Do not output files that have not changed.
-You can include explanatory text outside of these file tags.'''
-
-
-# Map of model type (e.g. 'ollama') to model API function
-_API_FUNCTIONS = {
-    'grok': grok_chat,
-    'ollama': ollama_chat
-}
-
-
 # Helper to extract files from a response
 def _extract_files(response, backup):
     search_pos = 0
@@ -221,26 +239,33 @@ def _extract_files(response, backup):
             break
         file_path = os.path.normpath(match.group(1))
         content = match.group(2).strip()
+        search_pos = match.end()
+
+        # Ignore URLs
+        if _is_url(file_path):
+            continue
+
+        # Delete?
         if content == 'ctxkit: delete':
             if os.path.exists(file_path):
                 os.remove(file_path)
-        else:
-            # Backup the existing file
-            if backup and os.path.exists(file_path):
-                shutil.copy(file_path, f'{file_path}.bak')
+            continue
 
-            # Create the file's parent directory
-            file_dir = os.path.dirname(file_path)
-            if file_dir: # pragma: no branch
-                os.makedirs(file_dir, exist_ok=True)
+        # Backup the existing file
+        if backup and os.path.exists(file_path):
+            shutil.copy(file_path, f'{file_path}.bak')
 
-            # Write the file
-            with open(file_path, 'w', encoding='utf-8') as file_:
-                file_.write(content)
-        search_pos = match.end()
+        # Create the file's parent directory
+        file_dir = os.path.dirname(file_path)
+        if file_dir: # pragma: no branch
+            os.makedirs(file_dir, exist_ok=True)
+
+        # Write the file
+        with open(file_path, 'w', encoding='utf-8') as file_:
+            file_.write(content)
 
 
-_R_FILENAME_TAG = re.compile(r'^<([^<>]+)>\n(.*?)\n</\1>', re.DOTALL | re.MULTILINE)
+_R_FILENAME_TAG = re.compile(r'^<([^<>]+)>\n(.*)\n</\1>', re.DOTALL | re.MULTILINE)
 
 
 # Process a configuration model and return the prompt string
@@ -310,24 +335,6 @@ def process_config_items(pool_manager, config, variables, root_dir='.'):
         # Message item
         else: # if item_key == 'message'
             yield _replace_variables(item['message'], variables)
-
-
-# argparse argument type for prompt items
-class TypedItemAction(argparse.Action):
-
-    def __init__(self, *args, **kwargs):
-        self.item_type = kwargs.pop('item_type')
-        super().__init__(*args, **kwargs)
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        # Initialize the destination list if it doesn't exist
-        items = getattr(namespace, self.dest)
-        if items is None:
-            items = []
-            setattr(namespace, self.dest, items)
-
-        # Append tuple (item_type, value)
-        items.append((self.item_type, values))
 
 
 # Helper to fetch a file or URL text
