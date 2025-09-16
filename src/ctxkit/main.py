@@ -27,15 +27,11 @@ def main(argv=None):
 
     # Command line arguments
     parser = argparse.ArgumentParser(prog='ctxkit')
-    parser.add_argument('-g', '--config-help', action='store_true',
-                        help='display the JSON configuration file format')
+    parser.add_argument('-g', '--config-help', action='store_true', help='display the JSON configuration file format')
     output_group = parser.add_argument_group('Output Options')
-    output_group.add_argument('-e', '--extract', action='store_true',
-                              help='extract response files')
-    output_group.add_argument('-o', '--output', metavar='PATH',
-                              help='output to the file path')
-    output_group.add_argument('-b', '--backup', action='store_true',
-                              help='backup output files with ".bak" extension')
+    output_group.add_argument('-e', '--extract', action='store_true', help='extract response files')
+    output_group.add_argument('-o', '--output', metavar='PATH', help='output to the file path')
+    output_group.add_argument('-b', '--backup', action='store_true', help='backup output files with ".bak" extension')
     items_group = parser.add_argument_group('Prompt Items')
     items_group.add_argument('-c', '--config', metavar='PATH', dest='items', action=TypedItemAction, item_type='config',
                              help='process the JSON configuration file path or URL')
@@ -51,23 +47,17 @@ def main(argv=None):
                              help="add a directory's text files")
     items_group.add_argument('-v', '--var', nargs=2, metavar=('VAR', 'EXPR'), dest='items', action=TypedItemAction, item_type='var',
                              help='define a variable (reference with "{{var}}")')
-    items_group.add_argument('-s', '--system', metavar='PATH',
-                             help='the system prompt file path or URL, "" for none')
+    items_group.add_argument('-s', '--system', metavar='PATH', help='the system prompt file path or URL, "" for none')
     dir_group = parser.add_argument_group('Directory Options')
-    dir_group.add_argument('-x', '--ext', action='append', default=[],
-                           help='add a directory text file extension')
-    dir_group.add_argument('-l', '--depth', metavar='INT', type=int, default=0,
-                           help='the maximum directory depth, default is 0 (infinite)')
+    dir_group.add_argument('-x', '--ext', action='append', default=[], help='add a directory text file extension')
+    dir_group.add_argument('-l', '--depth', metavar='INT', type=int, default=0, help='the maximum directory depth, default is 0 (infinite)')
     api_group = parser.add_argument_group('API Calling')
     group = api_group.add_mutually_exclusive_group()
-    group.add_argument('--ollama', metavar='MODEL',
-                       help='pass to the Ollama API')
-    group.add_argument('--grok', metavar='MODEL',
-                       help='pass to the Grok API')
-    api_group.add_argument('--temp', metavar='NUM', type=float,
-                           help='set the model response temperature')
-    api_group.add_argument('--topp', metavar='NUM', type=float,
-                           help='set the model response top_p')
+    group.add_argument('--ollama', metavar='MODEL', help='pass to the Ollama API')
+    group.add_argument('--grok', metavar='MODEL', help='pass to the Grok API')
+    api_group.add_argument('--temp', metavar='NUM', type=float, help='set the model response temperature')
+    api_group.add_argument('--topp', metavar='NUM', type=float, help='set the model response top_p')
+    api_group.add_argument('--maxtok', metavar='NUM', type=int, help='set the model response max tokens')
     args = parser.parse_args(args=argv)
     model_type, _ = _get_model_args(args)
 
@@ -175,6 +165,7 @@ To delete a file, use:
 ctxkit: delete
 </filename>
 
+All output files should have an end-of-file newline.
 Do not output files that have not changed.
 You can include explanatory text outside of these file tags.'''
 
@@ -218,7 +209,7 @@ def _output_api_call(args, pool_manager, output, system_prompt, prompt):
 
     # Write the response to the output
     chunks = []
-    for chunk in api_func(pool_manager, model_name, system_prompt, prompt, args.temp, args.topp):
+    for chunk in api_func(pool_manager, model_name, system_prompt, prompt, args.temp, args.topp, args.maxtok):
         chunks.append(chunk)
         output.write(chunk)
         output.flush()

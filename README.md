@@ -179,7 +179,7 @@ the following types: configuration files (`-c`), messages (`-m`), file path or U
 usage: ctxkit [-h] [-g] [-e] [-o PATH] [-b] [-c PATH] [-m TEXT] [-i PATH]
               [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-s PATH] [-x EXT]
               [-l INT] [--ollama MODEL | --grok MODEL] [--temp NUM]
-              [--topp NUM]
+              [--topp NUM] [--maxtok NUM]
 
 options:
   -h, --help           show this help message and exit
@@ -198,7 +198,7 @@ Prompt Items:
   -f, --file PATH      add the file path or URL as a text file
   -d, --dir PATH       add a directory's text files
   -v, --var VAR EXPR   define a variable (reference with "{{var}}")
-  -s, --system PATH    the system prompt file path, "" for no system prompt
+  -s, --system PATH    the system prompt file path or URL, "" for none
 
 Directory Options:
   -x, --ext EXT        add a directory text file extension
@@ -209,6 +209,7 @@ API Calling:
   --grok MODEL         pass to the Grok API
   --temp NUM           set the model response temperature
   --topp NUM           set the model response top_p
+  --maxtok NUM         set the model response max tokens
 ```
 
 
