@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2 (2025-09-16)
+
+- [4ce041c](https://github.com/craigahobbs/ctxkit/commit/4ce041c) - update package description
+
 ## 1.3.1 (2025-09-16)
 
 - [703ebf1](https://github.com/craigahobbs/ctxkit/commit/703ebf1) - ignore url files for extract, allow url system prompts
