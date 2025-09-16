@@ -14,7 +14,7 @@ def _get_ollama_url(path):
 
 
 # Call the Ollama API and yield the response chunk strings
-def ollama_chat(pool_manager, model, prompt, temperature=None, top_p=None):
+def ollama_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_p=None):
     # Is this a thinking model?
     url_show = _get_ollama_url('/api/show')
     data_show = {'model': model}
@@ -29,11 +29,13 @@ def ollama_chat(pool_manager, model, prompt, temperature=None, top_p=None):
 
     # Start a streaming chat request
     url_chat = _get_ollama_url('/api/chat')
+    messages = []
+    if system_prompt:
+        messages.append({'role': 'system', 'content': system_prompt})
+    messages.append({'role': 'user', 'content': prompt})
     data_chat = {
         'model': model,
-        'messages': [
-            {'role': 'user', 'content': prompt}
-        ],
+        'messages': messages,
         'stream': True,
         'think': is_thinking,
     }

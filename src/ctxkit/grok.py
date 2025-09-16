@@ -21,17 +21,19 @@ XAI_URL = 'https://api.x.ai/v1/chat/completions'
 
 
 # Call the xAI API and yield the response chunk strings
-def grok_chat(pool_manager, model, prompt, temperature=None, top_p=None):
+def grok_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_p=None):
     # No API key?
     if XAI_API_KEY is None:
         raise urllib3.exceptions.HTTPError('XAI_API_KEY environment variable not set')
 
     # Make POST request with streaming
+    messages = []
+    if system_prompt:
+        messages.append({'role': 'system', 'content': system_prompt})
+    messages.append({'role': 'user', 'content': prompt})
     xai_json = {
         'model': model,
-        'messages': [
-            {'role': 'user', 'content': prompt}
-        ],
+        'messages': messages,
         'stream': True
     }
     if temperature is not None:

@@ -33,6 +33,8 @@ def main(argv=None):
                         help='output to the file path')
     parser.add_argument('-b', '--backup', action='store_true',
                         help='backup the output file with ".bak" extension')
+    parser.add_argument('-s', '--system', metavar='PATH',
+                        help='the system prompt file path, "" for no system prompt')
     items_group = parser.add_argument_group('Prompt Items')
     items_group.add_argument('-c', '--config', metavar='PATH', dest='items', action=TypedItemAction, item_type='config',
                              help='process the JSON configuration file path or URL')
@@ -59,6 +61,8 @@ def main(argv=None):
                        help='pass to the Ollama API')
     group.add_argument('--grok', metavar='MODEL',
                        help='pass to the Grok API')
+    api_group.add_argument('--extract', action='store_true',
+                           help='extract response files - USE WITH CAUTION!')
     api_group.add_argument('--temp', metavar='NUM', type=float,
                            help='set the model response temperature')
     api_group.add_argument('--topp', metavar='NUM', type=float,
@@ -96,15 +100,30 @@ def main(argv=None):
     if args.backup and args.output and os.path.isfile(args.output):
         shutil.copy(args.output, f'{args.output}.bak')
 
+    # Create the output directory
+    if args.output:
+        output_dir = os.path.dirname(args.output)
+        if output_dir: # pragma: no branch
+            os.makedirs(output_dir, exist_ok=True)
+
+    # Read the system prompt, if any
+    system_prompt = DEFAULT_SYSTEM
+    if args.system is not None:
+        if not args.system:
+            system_prompt = None
+        else:
+            with open(args.system, 'r', encoding='utf-8') as system_file:
+                system_prompt = system_file.read().strip()
+
     # Pass stdin to an AI?
     if model_type and not config['items']:
         try:
             prompt = sys.stdin.read()
             if args.output:
                 with open(args.output, 'w', encoding='utf-8') as output:
-                    _output_api_call(args, pool_manager, output, prompt)
+                    _output_api_call(args, pool_manager, output, system_prompt, prompt)
             else:
-                _output_api_call(args, pool_manager, sys.stdout, prompt)
+                _output_api_call(args, pool_manager, sys.stdout, system_prompt, prompt)
             return
         except Exception as exc:
             print(f'\nError: {exc}', file=sys.stderr)
@@ -121,16 +140,20 @@ def main(argv=None):
             prompt = process_config(pool_manager, config, {})
             if args.output:
                 with open(args.output, 'w', encoding='utf-8') as output:
-                    _output_api_call(args, pool_manager, output, prompt)
+                    _output_api_call(args, pool_manager, output, system_prompt, prompt)
             else:
-                _output_api_call(args, pool_manager, sys.stdout, prompt)
+                _output_api_call(args, pool_manager, sys.stdout, system_prompt, prompt)
         else:
             if args.output:
                 prompt = process_config(pool_manager, config, {})
                 with open(args.output, 'w', encoding='utf-8') as output:
                     print(prompt, file=output)
             else:
-                for ix_item, item_text in enumerate(process_config_items(pool_manager, config, {})):
+                items = []
+                if system_prompt:
+                    items.append(f'<system>\n{system_prompt}\n</system>')
+                items.extend(process_config_items(pool_manager, config, {}))
+                for ix_item, item_text in enumerate(items):
                     if ix_item != 0:
                         print()
                     print(item_text)
@@ -147,19 +170,77 @@ def _get_model_args(args):
 
 
 # Helper to output the response from stdin to passed to an API
-def _output_api_call(args, pool_manager, output, prompt):
+def _output_api_call(args, pool_manager, output, system_prompt, prompt):
     model_type, model_name = _get_model_args(args)
-    has_chunks = False
-    if model_type == 'grok':
-        for chunk in grok_chat(pool_manager, model_name, prompt, args.temp, args.topp):
-            print(chunk, end='', file=output, flush=True)
-            has_chunks = True
-    else: # model_type == 'ollama':
-        for chunk in ollama_chat(pool_manager, model_name, prompt, args.temp, args.topp):
-            print(chunk, end='', file=output, flush=True)
-            has_chunks = True
-    if has_chunks:
-        print(file=output)
+    api_func = _API_FUNCTIONS[model_type]
+
+    # Write the response to the output
+    chunks = []
+    for chunk in api_func(pool_manager, model_name, system_prompt, prompt, args.temp, args.topp):
+        chunks.append(chunk)
+        output.write(chunk)
+        output.flush()
+    if chunks:
+        output.write('\n')
+
+    # Extract files, if requested
+    if args.extract:
+        _extract_files(''.join(chunks), args.backup)
+
+
+DEFAULT_SYSTEM = '''\
+You are a helpful assistant that can read and modify files provided in the prompt.
+
+Output modified or new files using this format:
+<filename>
+<content of the file>
+</filename>
+
+To delete a file, use:
+<filename>
+ctxkit: delete
+</filename>
+
+Do not output files that have not changed.
+You can include explanatory text outside of these file tags.'''
+
+
+# Map of model type (e.g. 'ollama') to model API function
+_API_FUNCTIONS = {
+    'grok': grok_chat,
+    'ollama': ollama_chat
+}
+
+
+# Helper to extract files from a response
+def _extract_files(response, backup):
+    search_pos = 0
+    while True:
+        match = _R_FILENAME_TAG.search(response, search_pos)
+        if not match:
+            break
+        file_path = os.path.normpath(match.group(1))
+        content = match.group(2).strip()
+        if content == 'ctxkit: delete':
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        else:
+            # Backup the existing file
+            if backup and os.path.exists(file_path):
+                shutil.copy(file_path, f'{file_path}.bak')
+
+            # Create the file's parent directory
+            file_dir = os.path.dirname(file_path)
+            if file_dir: # pragma: no branch
+                os.makedirs(file_dir, exist_ok=True)
+
+            # Write the file
+            with open(file_path, 'w', encoding='utf-8') as file_:
+                file_.write(content)
+        search_pos = match.end()
+
+
+_R_FILENAME_TAG = re.compile(r'^<([^<>]+)>\n(.*?)\n</\1>', re.DOTALL | re.MULTILINE)
 
 
 # Process a configuration model and return the prompt string
