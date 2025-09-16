@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.3 (2025-09-16)
+
+- [afb473a](https://github.com/craigahobbs/ctxkit/commit/afb473a) - add --maxtok argument
+
 ## 1.3.2 (2025-09-16)
 
 - [4ce041c](https://github.com/craigahobbs/ctxkit/commit/4ce041c) - update package description
