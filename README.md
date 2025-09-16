@@ -5,7 +5,7 @@
 [![GitHub](https://img.shields.io/github/license/craigahobbs/ctxkit)](https://github.com/craigahobbs/ctxkit/blob/main/LICENSE)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ctxkit)](https://pypi.org/project/ctxkit/)
 
-ctxkit is a command-line tool for creating complex AI prompts for modifying code. It works as follows:
+ctxkit is a command-line tool for creating AI prompts to modify code. It works as follows:
 
 - construct an AI prompt containing files, directories, and URL content
 
