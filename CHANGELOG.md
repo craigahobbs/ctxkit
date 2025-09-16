@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1 (2025-09-16)
+
+- [703ebf1](https://github.com/craigahobbs/ctxkit/commit/703ebf1) - ignore url files for extract, allow url system prompts
+
 ## 1.3.0 (2025-09-15)
 
 - [0c77bc3](https://github.com/craigahobbs/ctxkit/commit/0c77bc3) - add the -s and --extract arguments
