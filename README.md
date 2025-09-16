@@ -5,26 +5,20 @@
 [![GitHub](https://img.shields.io/github/license/craigahobbs/ctxkit)](https://github.com/craigahobbs/ctxkit/blob/main/LICENSE)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ctxkit)](https://pypi.org/project/ctxkit/)
 
-ctxkit is a command-line tool for constructing AI prompts containing files, directories, and URL
-content. For example:
+ctxkit is a command-line tool for creating complex AI prompts for modifying code. It works as follows:
+
+- construct an AI prompt containing files, directories, and URL content
+
+- calls an API to generate the prompt response
+
+- extract modified or newly-created files in-place
+
+In the following example, the project's Python source code is included (`-d src -x py`), then a
+change request message (`-m`), then call the xAI API (`--grok`), and finally extract the modified
+project files (`--extract`):
 
 ```sh
-ctxkit -m "Please review the following source code file." -f main.py
-```
-
-In the preceding example, the `-m` argument outputs the message text, and the `-f` argument outputs
-the `main.py` file text as follows.
-
-```
-<system>
-...
-</system>
-
-Please review the following source code file.
-
-<main.py>
-print('Hello, world!')
-</main.py>
+ctxkit -d src -x py -m 'Please add -q argument' --grok grok-code-fast --extract
 ```
 
 
@@ -49,7 +43,7 @@ pip install ctxkit
 ```
 
 
-## API Calling
+## Calling APIs
 
 ctxkit supports calling the
 [Ollama API](https://ollama.com/)
@@ -80,28 +74,18 @@ echo 'Hello!' | ctxkit --ollama gpt-oss:20b
 ```
 
 
-## Copying Output
+## Extract Response Files
 
-To copy the output of ctxkit and paste it into your favorite AI chat application, pipe ctxkit's
-output into the clipboard tool for your platform.
+When a prompt includes one or more files, the AI may respond with modified versions of the files.
+You can extract the modified files using the `-e` (or `--extract`) argument:
 
-**macOS**
-
-```sh
-ctxkit -m 'Hello!' | pbcopy
+```
+ctxkit -d src -x py -m "Add a -q argument to silence output" --grok grok-code-fast --extract
 ```
 
-**Windows**
-
-```sh
-ctxkit -m 'Hello!' | clip
-```
-
-**Linux**
-
-```sh
-ctxkit -m 'Hello!' | xsel -ib
-```
+In this example, ctxkit passes a prompt with all of the project source and a change request, to
+which we expect the AI to respond with modified versions of some project files that satisfy the
+requested change. Magic!
 
 
 ## Variables
@@ -158,6 +142,30 @@ Write the unit test methods to cover the code in the main function.
 <src/tests/test_main.py>
 # test_main.py
 </src/tests/test_main.py>
+```
+
+
+## Copy Output
+
+To copy the output of ctxkit and paste it into your favorite AI chat application, pipe ctxkit's
+output into the clipboard tool for your platform.
+
+**macOS**
+
+```sh
+ctxkit -m 'Hello!' | pbcopy
+```
+
+**Windows**
+
+```sh
+ctxkit -m 'Hello!' | clip
+```
+
+**Linux**
+
+```sh
+ctxkit -m 'Hello!' | xsel -ib
 ```
 
 
