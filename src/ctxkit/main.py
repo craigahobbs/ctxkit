@@ -167,7 +167,6 @@ To delete a file, use:
 ctxkit: delete
 </filename>
 
-All output files should have an end-of-file newline.
 Do not output files that have not changed.
 You can include explanatory text outside of these file tags.'''
 
@@ -256,7 +255,8 @@ def _extract_files(response, backup):
 
         # Write the file
         with open(file_path, 'w', encoding='utf-8') as file_:
-            file_.write(content)
+            file_.write(content.strip())
+            file_.write('\n')
 
 
 _R_FILENAME_TAG = re.compile(r'^<([^<>]+)>\n(.*)\n</\1>', re.DOTALL | re.MULTILINE)

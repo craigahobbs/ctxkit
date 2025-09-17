@@ -243,13 +243,13 @@ Hello
 
             with open(file_path, 'r', encoding='utf-8') as file_:
                 file_text = file_.read()
-            self.assertEqual(file_text, 'File #1')
+            self.assertEqual(file_text, 'File #1\n')
 
             self.assertFalse(os.path.exists(f'{file_path}.bak'))
 
             with open(file_path2, 'r', encoding='utf-8') as file_:
                 file_text2 = file_.read()
-            self.assertEqual(file_text2, '<nested>\nFile #2\n</nested>')
+            self.assertEqual(file_text2, '<nested>\nFile #2\n</nested>\n')
 
             self.assertFalse(os.path.exists(f'{file_path2}.bak'))
             self.assertFalse(os.path.exists(url_dir))
@@ -316,7 +316,7 @@ File
 
             with open(file_path, 'r', encoding='utf-8') as file_:
                 file_text = file_.read()
-            self.assertEqual(file_text, 'File #1')
+            self.assertEqual(file_text, 'File #1\n')
 
             with open(f'{file_path}.bak', 'r', encoding='utf-8') as file_:
                 file_text = file_.read()
@@ -324,7 +324,7 @@ File
 
             with open(file_path2, 'r', encoding='utf-8') as file_:
                 file_text2 = file_.read()
-            self.assertEqual(file_text2, 'File\n#2')
+            self.assertEqual(file_text2, 'File\n#2\n')
 
             self.assertFalse(os.path.exists(f'{file_path2}.bak'))
 
