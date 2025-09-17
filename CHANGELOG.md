@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1 (2025-09-17)
+
+- [c91c1e9](https://github.com/craigahobbs/ctxkit/commit/c91c1e9) - improve api calling argument handling
+
+- [2b76a5a](https://github.com/craigahobbs/ctxkit/commit/2b76a5a) - ensure extracted end-of-file newline
+
 ## 1.4.0 (2025-09-16)
 
 - [a92651c](https://github.com/craigahobbs/ctxkit/commit/a92651c) - add Claude \(Anthropic\) API support
