@@ -53,15 +53,18 @@ def main(argv=None):
     dir_group.add_argument('-x', '--ext', action='append', default=[], help='add a directory text file extension')
     dir_group.add_argument('-l', '--depth', metavar='INT', type=int, default=0, help='the maximum directory depth, default is 0 (infinite)')
     api_group = parser.add_argument_group('API Calling')
-    group = api_group.add_mutually_exclusive_group()
-    group.add_argument('--claude', metavar='MODEL', help='pass to the Claude API')
-    group.add_argument('--grok', metavar='MODEL', help='pass to the Grok API')
-    group.add_argument('--ollama', metavar='MODEL', help='pass to the Ollama API')
+    api_exclusive = api_group.add_mutually_exclusive_group()
+    api_exclusive.add_argument('--claude', metavar='MODEL', dest='models', action=TypedItemAction, item_type='claude',
+                               help='pass to the Claude API')
+    api_exclusive.add_argument('--grok', metavar='MODEL', dest='models', action=TypedItemAction, item_type='grok',
+                               help='pass to the Grok API')
+    api_exclusive.add_argument('--ollama', metavar='MODEL', dest='models', action=TypedItemAction, item_type='ollama',
+                               help='pass to the Ollama API')
     api_group.add_argument('--temp', metavar='NUM', type=float, help='set the model response temperature')
     api_group.add_argument('--topp', metavar='NUM', type=float, help='set the model response top_p')
     api_group.add_argument('--maxtok', metavar='NUM', type=int, help='set the model response max tokens')
     args = parser.parse_args(args=argv)
-    model_type, _ = _get_model_args(args)
+    model_type, _ = args.models[0] if args.models else (None, None)
 
     # Show configuration file format?
     if args.config_help:
@@ -197,16 +200,9 @@ class TypedItemAction(argparse.Action):
         items.append((self.item_type, values))
 
 
-# Helper to get the model_type and model_name
-def _get_model_args(args):
-    model_type = (args.claude and 'claude') or (args.grok and 'grok') or (args.ollama and 'ollama')
-    model_name = args.claude or args.grok or args.ollama
-    return model_type, model_name
-
-
 # Helper to output the response from stdin to passed to an API
 def _output_api_call(args, pool_manager, output, system_prompt, prompt):
-    model_type, model_name = _get_model_args(args)
+    model_type, model_name = args.models[0] if args.models else (None, None)
     api_func = _API_FUNCTIONS[model_type]
 
     # Write the response to the output
