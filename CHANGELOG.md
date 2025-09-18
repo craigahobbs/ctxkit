@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0 (2025-09-18)
+
+- [6769cfc](https://github.com/craigahobbs/ctxkit/commit/6769cfc) - add --list argument
+
 ## 1.4.2 (2025-09-17)
 
 - [f45cf4f](https://github.com/craigahobbs/ctxkit/commit/f45cf4f) - code cleanup, improve examples
