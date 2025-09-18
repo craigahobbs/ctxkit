@@ -9,13 +9,12 @@ APP ?= app.md
 
 
 # The model to use
-TYPE ?= grok
-MODEL ?= grok-code-fast-1
+MODEL ?= --grok grok-code-fast-1
 
 
 # The ctxkit options
 CTXKIT_ARGS := -b$(if $(TEMP), --temp $(TEMP))$(if $(TOPP), --topp $(TOPP))
-CTXKIT_ARGS := $(CTXKIT_ARGS)$(if $(TEST_PROMPT),, --$(TYPE) $(MODEL)$(if $(TEST),, -o $(APP)))
+CTXKIT_ARGS := $(CTXKIT_ARGS)$(if $(TEST_PROMPT),, $(MODEL)$(if $(TEST),, --extract))
 
 
 .phony: help
@@ -41,7 +40,7 @@ build/venv.build:
 
 
 $(APP): build/venv.build
-	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/create.json -i $(SPEC)
+	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/create.json -m 'The application filename is "$(APP)".' -i $(SPEC)
 
 
 .phony: start
