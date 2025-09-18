@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2 (2025-09-17)
+
+- [f45cf4f](https://github.com/craigahobbs/ctxkit/commit/f45cf4f) - code cleanup, improve examples
+
 ## 1.4.1 (2025-09-17)
 
 - [c91c1e9](https://github.com/craigahobbs/ctxkit/commit/c91c1e9) - improve api calling argument handling
