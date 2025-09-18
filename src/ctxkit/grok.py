@@ -18,6 +18,7 @@ XAI_API_KEY = os.getenv('XAI_API_KEY')
 
 # API endpoint
 XAI_URL = 'https://api.x.ai/v1/chat/completions'
+XAI_MODELS_URL = 'https://api.x.ai/v1/models'
 
 
 # Call the xAI API and yield the response chunk strings
@@ -86,5 +87,29 @@ def grok_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_
             if content:
                 yield content
 
+    finally:
+        response.close()
+
+
+# List available Grok models
+def grok_list(pool_manager):
+    # No API key?
+    if XAI_API_KEY is None:
+        raise urllib3.exceptions.HTTPError('XAI_API_KEY environment variable not set')
+
+    response = pool_manager.request(
+        method='GET',
+        url=XAI_MODELS_URL,
+        headers={
+            'Authorization': f'Bearer {XAI_API_KEY}',
+            'Content-Type': 'application/json'
+        },
+        retries=0
+    )
+    try:
+        if response.status != 200:
+            raise urllib3.exceptions.HTTPError(f'xAI API failed with status {response.status}')
+        data = response.json()
+        return [model['id'] for model in data.get('data', [])]
     finally:
         response.close()

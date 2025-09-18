@@ -61,3 +61,16 @@ def ollama_chat(pool_manager, model, system_prompt, prompt, temperature=None, to
                 yield content
     finally:
         response_chat.close()
+
+
+# List available Ollama models
+def ollama_list(pool_manager):
+    url_tags = _get_ollama_url('/api/tags')
+    response_tags = pool_manager.request('GET', url_tags, retries=0)
+    try:
+        if response_tags.status != 200:
+            raise urllib3.exceptions.HTTPError(f'Ollama API failed with status {response_tags.status}')
+        data = response_tags.json()
+        return [model['name'] for model in data.get('models', [])]
+    finally:
+        response_tags.close()

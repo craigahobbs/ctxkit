@@ -16,9 +16,9 @@ import sys
 import schema_markdown
 import urllib3
 
-from .claude import claude_chat
-from .grok import grok_chat
-from .ollama import ollama_chat
+from .claude import claude_chat, claude_list
+from .grok import grok_chat, grok_list
+from .ollama import ollama_chat, ollama_list
 
 
 def main(argv=None):
@@ -60,6 +60,7 @@ def main(argv=None):
                                help='pass to the Grok API')
     api_exclusive.add_argument('--ollama', metavar='MODEL', dest='models', action=TypedItemAction, item_type='ollama',
                                help='pass to the Ollama API')
+    api_group.add_argument('--list', metavar='API', help='list available models for the API (i.e. "ollama")')
     api_group.add_argument('--temp', metavar='NUM', type=float, help='set the model response temperature')
     api_group.add_argument('--topp', metavar='NUM', type=float, help='set the model response top_p')
     api_group.add_argument('--maxtok', metavar='NUM', type=int, help='set the model response max tokens')
@@ -70,28 +71,37 @@ def main(argv=None):
         print(CTXKIT_SMD.strip())
         return
 
-    # Load the config file
-    config = {'items': []}
-    for item_type, item_value in (args.items or []):
-        if item_type == 'config':
-            config['items'].append({'config': item_value})
-        elif item_type == 'include':
-            config['items'].append({'include': item_value})
-        elif item_type == 'template':
-            config['items'].append({'template': item_value})
-        elif item_type == 'file':
-            config['items'].append({'file': item_value})
-        elif item_type == 'dir':
-            config['items'].append({'dir': {'path': item_value, 'exts': args.ext, 'depth': args.depth}})
-        elif item_type == 'var':
-            config['items'].append({'var': {'name': item_value[0], 'value': item_value[1]}})
-        else: # item_type == 'message':
-            config['items'].append({'message': item_value})
-
     # Initialize urllib3 PoolManager
     pool_manager = urllib3.PoolManager()
 
     try:
+        # List models?
+        if args.list:
+            list_funcs = _API_FUNCTIONS.get(args.list)
+            if not list_funcs:
+                parser.error(f'Invalid model API "{args.list}"')
+            models = list_funcs['list'](pool_manager)
+            print('\n'.join(sorted(models)))
+            return
+
+        # Load the config file
+        config = {'items': []}
+        for item_type, item_value in (args.items or []):
+            if item_type == 'config':
+                config['items'].append({'config': item_value})
+            elif item_type == 'include':
+                config['items'].append({'include': item_value})
+            elif item_type == 'template':
+                config['items'].append({'template': item_value})
+            elif item_type == 'file':
+                config['items'].append({'file': item_value})
+            elif item_type == 'dir':
+                config['items'].append({'dir': {'path': item_value, 'exts': args.ext, 'depth': args.depth}})
+            elif item_type == 'var':
+                config['items'].append({'var': {'name': item_value[0], 'value': item_value[1]}})
+            else: # item_type == 'message':
+                config['items'].append({'message': item_value})
+
         # Get the system prompt
         system_prompt = DEFAULT_SYSTEM
         if args.system is not None:
@@ -173,11 +183,11 @@ Do not output files that have not changed.
 You can include explanatory text outside of these file tags.'''
 
 
-# Map of model type (e.g. 'ollama') to model API function
+# Map of model API (e.g. 'ollama') to model API function
 _API_FUNCTIONS = {
-    'claude': claude_chat,
-    'grok': grok_chat,
-    'ollama': ollama_chat
+    'claude': {'chat': claude_chat, 'list': claude_list},
+    'grok': {'chat': grok_chat, 'list': grok_list},
+    'ollama': {'chat': ollama_chat, 'list': ollama_list}
 }
 
 
@@ -202,7 +212,7 @@ class TypedItemAction(argparse.Action):
 # Helper to output the response from stdin to passed to an API
 def _output_api_call(args, pool_manager, output, system_prompt, prompt):
     model_type, model_name = args.models[-1] if args.models else (None, None)
-    api_func = _API_FUNCTIONS[model_type]
+    api_func = _API_FUNCTIONS[model_type]['chat']
 
     # Write the response to the output
     chunks = []

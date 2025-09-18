@@ -18,6 +18,7 @@ ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 
 # API endpoint
 ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages'
+ANTHROPIC_MODELS_URL = 'https://api.anthropic.com/v1/models'
 
 
 # Anthropic API requires max_tokens
@@ -94,5 +95,30 @@ def claude_chat(pool_manager, model, system_prompt, prompt, temperature=None, to
                 if 'text' in delta:
                     yield delta['text']
 
+    finally:
+        response.close()
+
+
+# List available Claude models
+def claude_list(pool_manager):
+    # No API key?
+    if ANTHROPIC_API_KEY is None:
+        raise urllib3.exceptions.HTTPError('ANTHROPIC_API_KEY environment variable not set')
+
+    response = pool_manager.request(
+        method='GET',
+        url=ANTHROPIC_MODELS_URL,
+        headers={
+            'x-api-key': ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
+            'Content-Type': 'application/json'
+        },
+        retries=0
+    )
+    try:
+        if response.status != 200:
+            raise urllib3.exceptions.HTTPError(f'Claude API failed with status {response.status}')
+        data = response.json()
+        return [model['id'] for model in data.get('data', [])]
     finally:
         response.close()

@@ -679,3 +679,95 @@ data: {"text": "Goodbye"}}
 
         self.assertEqual(stdout.getvalue(), '')
         self.assertEqual(stderr.getvalue(), '\nError: Claude API error: Test API error\n')
+
+
+    def test_claude_list(self):
+        with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the models API call
+            mock_models_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_models_response.status = 200
+            mock_models_response.json.return_value = {
+                'data': [
+                    {'id': 'claude-3-opus-20240229'},
+                    {'id': 'claude-3-sonnet-20240229'},
+                    {'id': 'claude-3-haiku-20240307'},
+                    {'id': 'claude-2.1'}
+                ]
+            }
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_models_response
+
+            main(['--list', 'claude'])
+
+        mock_pool_manager_instance.request.assert_called_once_with(
+            method='GET',
+            url='https://api.anthropic.com/v1/models',
+            headers={
+                'x-api-key': 'XXXX',
+                'anthropic-version': '2023-06-01',
+                'Content-Type': 'application/json'
+            },
+            retries=0
+        )
+        mock_models_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), '''\
+claude-2.1
+claude-3-haiku-20240307
+claude-3-opus-20240229
+claude-3-sonnet-20240229
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_claude_list_error(self):
+        with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the models API call
+            mock_models_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_models_response.status = 500
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_models_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['--list', 'claude'])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_pool_manager_instance.request.assert_called_once_with(
+            method='GET',
+            url='https://api.anthropic.com/v1/models',
+            headers={
+                'x-api-key': 'XXXX',
+                'anthropic-version': '2023-06-01',
+                'Content-Type': 'application/json'
+            },
+            retries=0
+        )
+        mock_models_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '\nError: Claude API failed with status 500\n')
+
+
+    def test_claude_list_no_api_key(self):
+        with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', None), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['--list', 'claude'])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '\nError: ANTHROPIC_API_KEY environment variable not set\n')

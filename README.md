@@ -68,6 +68,15 @@ ctxkit -m 'Hello!' --ollama gpt-oss:20b
 ```
 
 
+### List Models
+
+Use the `--list` argument to list an API's models. For example:
+
+```sh
+ctxkit --list claude
+```
+
+
 ### Prompt from `stdin`
 
 You can call an API with a prompt from `stdin` by passing no prompt items:
@@ -182,7 +191,7 @@ the following types: configuration files (`-c`), messages (`-m`), file path or U
 usage: ctxkit [-h] [-g] [-e] [-o PATH] [-b] [-c PATH] [-m TEXT] [-i PATH]
               [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-s PATH] [-x EXT]
               [-l INT] [--claude MODEL | --grok MODEL | --ollama MODEL]
-              [--temp NUM] [--topp NUM] [--maxtok NUM]
+              [--list API] [--temp NUM] [--topp NUM] [--maxtok NUM]
 
 options:
   -h, --help           show this help message and exit
@@ -211,6 +220,7 @@ API Calling:
   --claude MODEL       pass to the Claude API
   --grok MODEL         pass to the Grok API
   --ollama MODEL       pass to the Ollama API
+  --list API           list available models for the API (i.e. "ollama")
   --temp NUM           set the model response temperature
   --topp NUM           set the model response top_p
   --maxtok NUM         set the model response max tokens

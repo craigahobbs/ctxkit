@@ -995,3 +995,13 @@ Hello, Foo Bar!
 Hello,  Bar!
 ''')
         self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_list_invalid_api(self):
+        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['--list', 'invalid'])
+        self.assertEqual(cm_exc.exception.code, 2)
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertTrue(stderr.getvalue().endswith('ctxkit: error: Invalid model API "invalid"\n'))

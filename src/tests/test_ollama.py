@@ -844,3 +844,70 @@ class TestOllama(unittest.TestCase):
 
         self.assertEqual(stdout.getvalue(), 'Hi ')
         self.assertEqual(stderr.getvalue(), '\nError: BOOM!\n')
+
+
+    def test_ollama_list(self):
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the tags API call
+            mock_tags_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_tags_response.status = 200
+            mock_tags_response.json.return_value = {
+                'models': [
+                    {'name': 'llama3.2:latest'},
+                    {'name': 'llama3.2:1b'},
+                    {'name': 'deepseek-r1:latest'},
+                    {'name': 'qwen2.5:latest'}
+                ]
+            }
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_tags_response
+
+            main(['--list', 'ollama'])
+
+        mock_pool_manager_instance.request.assert_called_once_with(
+            'GET',
+            'http://127.0.0.1:11434/api/tags',
+            retries=0
+        )
+        mock_tags_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), '''\
+deepseek-r1:latest
+llama3.2:1b
+llama3.2:latest
+qwen2.5:latest
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_ollama_list_error(self):
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the tags API call
+            mock_tags_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_tags_response.status = 500
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_tags_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['--list', 'ollama'])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_pool_manager_instance.request.assert_called_once_with(
+            'GET',
+            'http://127.0.0.1:11434/api/tags',
+            retries=0
+        )
+        mock_tags_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '\nError: Ollama API failed with status 500\n')

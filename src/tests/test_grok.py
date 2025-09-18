@@ -663,3 +663,93 @@ data:  {"content": "Goodbye"}}]}
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
         self.assertEqual(stderr.getvalue(), '\nError: XAI_API_KEY environment variable not set\n')
+
+
+    def test_grok_list(self):
+        with unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the models API call
+            mock_models_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_models_response.status = 200
+            mock_models_response.json.return_value = {
+                'data': [
+                    {'id': 'grok-beta'},
+                    {'id': 'grok-vision-beta'},
+                    {'id': 'grok-2-1212'},
+                    {'id': 'grok-2-vision-1212'}
+                ]
+            }
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_models_response
+
+            main(['--list', 'grok'])
+
+        mock_pool_manager_instance.request.assert_called_once_with(
+            method='GET',
+            url='https://api.x.ai/v1/models',
+            headers={
+                'Authorization': 'Bearer XXXX',
+                'Content-Type': 'application/json'
+            },
+            retries=0
+        )
+        mock_models_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), '''\
+grok-2-1212
+grok-2-vision-1212
+grok-beta
+grok-vision-beta
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_grok_list_error(self):
+        with unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the models API call
+            mock_models_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_models_response.status = 500
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_models_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['--list', 'grok'])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_pool_manager_instance.request.assert_called_once_with(
+            method='GET',
+            url='https://api.x.ai/v1/models',
+            headers={
+                'Authorization': 'Bearer XXXX',
+                'Content-Type': 'application/json'
+            },
+            retries=0
+        )
+        mock_models_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '\nError: xAI API failed with status 500\n')
+
+
+    def test_grok_list_no_api_key(self):
+        with unittest.mock.patch('ctxkit.grok.XAI_API_KEY', None), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['--list', 'grok'])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '\nError: XAI_API_KEY environment variable not set\n')
