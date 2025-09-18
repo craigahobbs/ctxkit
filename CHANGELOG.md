@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0 (2025-09-18)
+
+- [b6edc49](https://github.com/craigahobbs/ctxkit/commit/b6edc49) - add --gpt argument
+
 ## 1.5.0 (2025-09-18)
 
 - [6769cfc](https://github.com/craigahobbs/ctxkit/commit/6769cfc) - add --list argument
