@@ -17,6 +17,7 @@ import schema_markdown
 import urllib3
 
 from .claude import claude_chat, claude_list
+from .gpt import gpt_chat, gpt_list
 from .grok import grok_chat, grok_list
 from .ollama import ollama_chat, ollama_list
 
@@ -56,6 +57,8 @@ def main(argv=None):
     api_exclusive = api_group.add_mutually_exclusive_group()
     api_exclusive.add_argument('--claude', metavar='MODEL', dest='models', action=TypedItemAction, item_type='claude',
                                help='pass to the Claude API')
+    api_exclusive.add_argument('--gpt', metavar='MODEL', dest='models', action=TypedItemAction, item_type='gpt',
+                               help='pass to the ChatGPT API')
     api_exclusive.add_argument('--grok', metavar='MODEL', dest='models', action=TypedItemAction, item_type='grok',
                                help='pass to the Grok API')
     api_exclusive.add_argument('--ollama', metavar='MODEL', dest='models', action=TypedItemAction, item_type='ollama',
@@ -186,6 +189,7 @@ You can include explanatory text outside of these file tags.'''
 # Map of model API (e.g. 'ollama') to model API function
 _API_FUNCTIONS = {
     'claude': {'chat': claude_chat, 'list': claude_list},
+    'gpt': {'chat': gpt_chat, 'list': gpt_list},
     'grok': {'chat': grok_chat, 'list': grok_list},
     'ollama': {'chat': ollama_chat, 'list': ollama_list}
 }

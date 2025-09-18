@@ -54,6 +54,13 @@ export ANTHROPIC_API_KEY=<key>
 ctxkit -m 'Hello!' --claude claude-3-5-haiku-latest
 ```
 
+`--gpt` - [ChatGPT (OpenAI) API](https://platform.openai.com/docs/api-reference/chat)
+
+```sh
+export OPENAI_API_KEY=<key>
+ctxkit -m 'Hello!' --gpt model-name
+```
+
 `--grok` - [Grok (xAI) API](https://docs.x.ai/docs/tutorial)
 
 ```sh
@@ -190,8 +197,9 @@ the following types: configuration files (`-c`), messages (`-m`), file path or U
 ```
 usage: ctxkit [-h] [-g] [-e] [-o PATH] [-b] [-c PATH] [-m TEXT] [-i PATH]
               [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-s PATH] [-x EXT]
-              [-l INT] [--claude MODEL | --grok MODEL | --ollama MODEL]
-              [--list API] [--temp NUM] [--topp NUM] [--maxtok NUM]
+              [-l INT] [--claude MODEL | --gpt MODEL | --grok MODEL |
+              --ollama MODEL] [--list API] [--temp NUM] [--topp NUM]
+              [--maxtok NUM]
 
 options:
   -h, --help           show this help message and exit
@@ -218,6 +226,7 @@ Directory Options:
 
 API Calling:
   --claude MODEL       pass to the Claude API
+  --gpt MODEL          pass to the ChatGPT API
   --grok MODEL         pass to the Grok API
   --ollama MODEL       pass to the Ollama API
   --list API           list available models for the API (i.e. "ollama")
