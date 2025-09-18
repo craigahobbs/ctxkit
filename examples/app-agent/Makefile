@@ -9,12 +9,11 @@ APP ?= app.md
 
 
 # The model to use
-MODEL ?= --grok grok-code-fast-1
+MODEL ?= $(if $(CLAUDE),--claude claude-opus-4-1,--grok grok-code-fast-1)
 
 
 # The ctxkit options
-CTXKIT_ARGS := -b$(if $(TEMP), --temp $(TEMP))$(if $(TOPP), --topp $(TOPP))
-CTXKIT_ARGS := $(CTXKIT_ARGS)$(if $(TEST_PROMPT),, $(MODEL)$(if $(TEST),, --extract))
+CTXKIT_ARGS := -b$(if $(TEST),, --extract)$(if $(TEST_PROMPT),, $(MODEL))$(if $(ARGS), $(ARGS))
 
 
 .phony: help
