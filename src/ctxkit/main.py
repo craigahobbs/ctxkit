@@ -64,7 +64,6 @@ def main(argv=None):
     api_group.add_argument('--topp', metavar='NUM', type=float, help='set the model response top_p')
     api_group.add_argument('--maxtok', metavar='NUM', type=int, help='set the model response max tokens')
     args = parser.parse_args(args=argv)
-    model_type, _ = args.models[0] if args.models else (None, None)
 
     # Show configuration file format?
     if args.config_help:
@@ -110,7 +109,7 @@ def main(argv=None):
                 os.makedirs(output_dir, exist_ok=True)
 
         # Pass stdin to an AI?
-        if model_type and not config['items']:
+        if args.models and not config['items']:
             prompt = sys.stdin.read()
             if args.output:
                 with open(args.output, 'w', encoding='utf-8') as output:
@@ -124,7 +123,7 @@ def main(argv=None):
             parser.error('no prompt items specified')
 
         # Process the configuration
-        if model_type:
+        if args.models:
             # Pass prompt to an AI
             prompt = process_config(pool_manager, config, {})
             if args.output:
@@ -202,7 +201,7 @@ class TypedItemAction(argparse.Action):
 
 # Helper to output the response from stdin to passed to an API
 def _output_api_call(args, pool_manager, output, system_prompt, prompt):
-    model_type, model_name = args.models[0] if args.models else (None, None)
+    model_type, model_name = args.models[-1] if args.models else (None, None)
     api_func = _API_FUNCTIONS[model_type]
 
     # Write the response to the output

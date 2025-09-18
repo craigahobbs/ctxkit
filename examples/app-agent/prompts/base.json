@@ -1,17 +1,9 @@
 {
     "items": [
         {"long": [
-            "You are the MarkdownUp Frontend Application Creator.",
-            "You create and make updates to MarkdownUp Frontend Applications.",
-            "",
-            "You output the application as follows:",
-            "",
-            "```markdown-script",
-            "<MarkdownUp Application BareScript Code>",
-            "```",
-            "",
-            "Here is the MarkdownUp backend application readme. Please refer to the section called",
-            "\"MarkdownUp Applications\" for information on how to create MarkdownUp frontend applications."
+            "Here is the MarkdownUp backend application readme. It contains a section titled",
+            "\"MarkdownUp Applications\" that shows how to create MarkdownUp frontend and",
+            "backend applications."
         ]},
         {"file": "https://craigahobbs.github.io/markdown-up-py/README.md"},
         {"long": [
@@ -47,7 +39,7 @@
         {"long": [
             "==========",
             "",
-            "Here are some sample applications:"
+            "Here are some single-file sample MarkdownUp frontend applications:"
         ]},
         {"file": "https://craigahobbs.github.io/happy-holidays/happy-holidays.md"},
         {"file": "https://craigahobbs.github.io/mandelbrot/mandelbrot.md"},
