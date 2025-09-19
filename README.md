@@ -107,6 +107,22 @@ which we expect the AI to respond with modified versions of some project files t
 requested change. Magic!
 
 
+## Inline Instructions
+
+The AI processes *inline instructions* within the included files. These are lines or comments that
+begin with `ctxkit:` followed by instructions. For example:
+
+```python
+def calculate_total(items):
+    # ctxkit: add a docstring
+    return sum(total)
+```
+
+Files containing the inline instructions are modified per the instructions and the inline
+instructions removed. Note that only instructions prefixed with `ctxkit:` are processed -
+instructions intended for others (e.g. `user:`) are ignored.
+
+
 ## Variables
 
 You can specify one or more variable references in a message's text, a file path, a directory path,
