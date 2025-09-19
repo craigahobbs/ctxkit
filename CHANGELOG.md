@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.3 (2025-09-19)
+
+- [39338c0](https://github.com/craigahobbs/ctxkit/commit/39338c0) - improve default system prompt
+
 ## 1.6.2 (2025-09-19)
 
 - [b993f13](https://github.com/craigahobbs/ctxkit/commit/b993f13) - add CTXKIT_FLAGS environment variable
