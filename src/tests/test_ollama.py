@@ -18,6 +18,7 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -77,6 +78,7 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_system(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -140,6 +142,7 @@ class TestOllama(unittest.TestCase):
                  ('test.txt', 'test text')
              ]) as temp_dir, \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             test_path = os.path.join(temp_dir, 'test.txt')
@@ -204,6 +207,7 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_temperature(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -266,6 +270,7 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_top_p(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -328,6 +333,7 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_max_tokens(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -390,6 +396,7 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_thinking(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -450,7 +457,8 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_stdin(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdin', io.StringIO('Hello')), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -510,7 +518,8 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_stdin_output(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdin', io.StringIO('Hello')), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -575,7 +584,8 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_stdin_empty(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdin', io.StringIO('Hello')), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -632,7 +642,8 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_stdin_error_chunk(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdin', io.StringIO('Hello')), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -694,6 +705,7 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_show_error(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -730,6 +742,7 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_chat_error(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -787,6 +800,7 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_chunk_error(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -848,6 +862,7 @@ class TestOllama(unittest.TestCase):
 
     def test_ollama_list(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -887,6 +902,7 @@ qwen2.5:latest
 
     def test_ollama_list_error(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 

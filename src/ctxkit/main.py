@@ -27,6 +27,10 @@ def main(argv=None):
     ctxkit command-line script main entry point
     """
 
+    # Combine the command-line and environment arguments
+    argv_env = os.getenv('CTXKIT_FLAGS', '').split()
+    argv_combined = argv_env + (sys.argv[1:] if argv is None else argv)
+
     # Command line arguments
     parser = argparse.ArgumentParser(prog='ctxkit')
     parser.add_argument('-g', '--config-help', action='store_true', help='display the JSON configuration file format')
@@ -54,20 +58,22 @@ def main(argv=None):
     dir_group.add_argument('-x', '--ext', action='append', default=[], help='add a directory text file extension')
     dir_group.add_argument('-l', '--depth', metavar='INT', type=int, default=0, help='the maximum directory depth, default is 0 (infinite)')
     api_group = parser.add_argument_group('API Calling')
-    api_exclusive = api_group.add_mutually_exclusive_group()
-    api_exclusive.add_argument('--claude', metavar='MODEL', dest='models', action=TypedItemAction, item_type='claude',
-                               help='pass to the Claude API')
-    api_exclusive.add_argument('--gpt', metavar='MODEL', dest='models', action=TypedItemAction, item_type='gpt',
-                               help='pass to the ChatGPT API')
-    api_exclusive.add_argument('--grok', metavar='MODEL', dest='models', action=TypedItemAction, item_type='grok',
-                               help='pass to the Grok API')
-    api_exclusive.add_argument('--ollama', metavar='MODEL', dest='models', action=TypedItemAction, item_type='ollama',
-                               help='pass to the Ollama API')
+    api_group.add_argument('--claude', metavar='MODEL', dest='models', action=TypedItemAction, item_type='claude',
+                           help='pass to the Claude API')
+    api_group.add_argument('--gpt', metavar='MODEL', dest='models', action=TypedItemAction, item_type='gpt',
+                           help='pass to the ChatGPT API')
+    api_group.add_argument('--grok', metavar='MODEL', dest='models', action=TypedItemAction, item_type='grok',
+                           help='pass to the Grok API')
+    api_group.add_argument('--ollama', metavar='MODEL', dest='models', action=TypedItemAction, item_type='ollama',
+                           help='pass to the Ollama API')
+    api_group.add_argument('--noapi', nargs=0, dest='models', action=TypedItemAction, item_type='noapi',
+                           help='pass to the Ollama API')
     api_group.add_argument('--list', metavar='API', help='list available models for the API (i.e. "ollama")')
     api_group.add_argument('--temp', metavar='NUM', type=float, help='set the model response temperature')
     api_group.add_argument('--topp', metavar='NUM', type=float, help='set the model response top_p')
     api_group.add_argument('--maxtok', metavar='NUM', type=int, help='set the model response max tokens')
-    args = parser.parse_args(args=argv)
+    args = parser.parse_args(args=argv_combined)
+    model_type = args.models[-1][0] if args.models and args.models[-1][0] != 'noapi' else None
 
     # Show configuration file format?
     if args.config_help:
@@ -122,7 +128,7 @@ def main(argv=None):
                 os.makedirs(output_dir, exist_ok=True)
 
         # Pass stdin to an AI?
-        if args.models and not config['items']:
+        if model_type and not config['items']:
             prompt = sys.stdin.read()
             if args.output:
                 with open(args.output, 'w', encoding='utf-8') as output:
@@ -136,7 +142,7 @@ def main(argv=None):
             parser.error('no prompt items specified')
 
         # Process the configuration
-        if args.models:
+        if model_type:
             # Pass prompt to an AI
             prompt = process_config(pool_manager, config, {})
             if args.output:

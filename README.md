@@ -210,6 +210,9 @@ Using the `ctxkit` command line application, you can add any number of ordered *
 the following types: configuration files (`-c`), messages (`-m`), file path or URL content (`-i` and
 `-f`), and directories (`-d`).
 
+The `CTXKIT_FLAGS` environment variable is used to define default arguments, such as `--grok
+grok-code-fast` to set a default model. `CTXKIT_FLAGS` is prepended to the command-line arguments.
+
 ```
 usage: ctxkit [-h] [-g] [-e] [-o PATH] [-b] [-c PATH] [-m TEXT] [-i PATH]
               [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-s PATH] [-x EXT]

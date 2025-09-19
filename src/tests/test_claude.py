@@ -18,6 +18,7 @@ class TestClaude(unittest.TestCase):
     def test_claude(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -63,6 +64,7 @@ class TestClaude(unittest.TestCase):
     def test_claude_system(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -112,6 +114,7 @@ class TestClaude(unittest.TestCase):
              ]) as temp_dir, \
              unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             test_path = os.path.join(temp_dir, 'test.txt')
@@ -162,6 +165,7 @@ class TestClaude(unittest.TestCase):
     def test_claude_temperature(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -208,6 +212,7 @@ class TestClaude(unittest.TestCase):
     def test_claude_top_p(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -254,6 +259,7 @@ class TestClaude(unittest.TestCase):
     def test_claude_empty(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -296,6 +302,7 @@ class TestClaude(unittest.TestCase):
     def test_claude_multiline(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -344,6 +351,7 @@ data: {"type": "content_block_delta", "delta": {"text": "Goodbye2"}}
     def test_claude_split_chunk(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -392,7 +400,8 @@ data: {"text": "Goodbye"}}
     def test_claude_stdin(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
+             unittest.mock.patch('sys.stdin', io.StringIO('Hello')), \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -438,7 +447,8 @@ data: {"text": "Goodbye"}}
     def test_claude_stdin_output(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
+             unittest.mock.patch('sys.stdin', io.StringIO('Hello')), \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -489,7 +499,8 @@ data: {"text": "Goodbye"}}
     def test_claude_stdin_error(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
+             unittest.mock.patch('sys.stdin', io.StringIO('Hello')), \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -533,6 +544,7 @@ data: {"text": "Goodbye"}}
     def test_claude_error(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -575,6 +587,7 @@ data: {"text": "Goodbye"}}
 
     def test_claude_no_api_key(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', None), \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -589,6 +602,7 @@ data: {"text": "Goodbye"}}
     def test_claude_false_cases(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -637,6 +651,7 @@ data: {"text": "Goodbye"}}
     def test_claude_api_error_event(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -684,6 +699,7 @@ data: {"text": "Goodbye"}}
     def test_claude_list(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -729,6 +745,7 @@ claude-3-sonnet-20240229
     def test_claude_list_error(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -762,6 +779,7 @@ claude-3-sonnet-20240229
 
     def test_claude_list_no_api_key(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', None), \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 

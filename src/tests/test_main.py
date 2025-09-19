@@ -39,15 +39,36 @@ class TestMain(unittest.TestCase):
 
 
     def test_help_config(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-g'])
         self.assertTrue(stdout.getvalue().startswith('# The ctxkit configuration file format'))
         self.assertEqual(stderr.getvalue(), '')
 
 
+    def test_ctxkit_flags(self):
+        with unittest.mock.patch.dict('os.environ', {'CTXKIT_FLAGS': ''}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            main(['-m', 'Hello', '-s', ''])
+        self.assertEqual(stdout.getvalue(), 'Hello\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_ctxkit_flags_noapi(self):
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {'CTXKIT_FLAGS': '--grok grok-3'}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            main(['-m', 'Hello', '-s', '', '--noapi'])
+        self.assertEqual(stdout.getvalue(), 'Hello\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
     def test_system_default(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-m', 'Hello', '-m', 'Goodbye'])
         self.assertEqual(stdout.getvalue(), f'''\
@@ -66,6 +87,7 @@ Goodbye
         with create_test_files([
                  ('system.txt', 'You are a friendly assistant')
              ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             system_path = os.path.join(temp_dir, 'system.txt')
@@ -84,6 +106,7 @@ Goodbye
 
     def test_system_url(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             # Create a mock Response object for the pull request
@@ -108,6 +131,7 @@ Hello
 
     def test_system_not_found(self):
         with create_test_files([]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             system_path = os.path.join(temp_dir, 'system.txt')
@@ -121,7 +145,8 @@ Hello
 
 
     def test_no_items(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             with self.assertRaises(SystemExit) as cm_exc:
                 main([])
@@ -132,6 +157,7 @@ Hello
 
     def test_output(self):
         with create_test_files([]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             output_path = os.path.join(temp_dir, 'output.txt')
@@ -157,6 +183,7 @@ Goodbye
         with create_test_files([
             ('output.txt', 'Hello')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             output_path = os.path.join(temp_dir, 'output.txt')
@@ -184,6 +211,7 @@ Goodbye
         with create_test_files([
                 ('test.txt', 'test text')
              ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             test_path = os.path.join(temp_dir, 'test.txt')
@@ -205,6 +233,7 @@ test text
              ]) as temp_dir, \
              unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'file.txt')
@@ -285,6 +314,7 @@ Hello
              ]) as temp_dir, \
              unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'file.txt')
@@ -358,6 +388,7 @@ File
              ]) as temp_dir, \
              unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'file.txt')
@@ -419,7 +450,8 @@ ctxkit: delete
 
 
     def test_message(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-m', 'Hello', '-m', 'Goodbye', '-s', ''])
         self.assertEqual(stdout.getvalue(), '''\
@@ -439,6 +471,7 @@ Goodbye
                 ]
             }))
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-c', os.path.join(temp_dir, 'test.json'), '-s', ''])
@@ -466,6 +499,7 @@ long!
                 ]
             }))
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-c', os.path.join(temp_dir, 'test.json'), '-s', ''])
@@ -492,6 +526,7 @@ test2
                 ]
             }))
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-c', os.path.join(temp_dir, 'test.json'), '-s', ''])
@@ -505,6 +540,7 @@ test1
 
     def test_config_failure(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             # Create a mock Response object for the pull request
@@ -525,6 +561,7 @@ test1
 
     def test_config_url(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             # Create a mock Response object for the pull request
@@ -558,6 +595,7 @@ Hello!
             })),
             (('subdir', 'nested.txt'), 'Nested message')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             nested_path = os.path.join(temp_dir, 'subdir', 'nested.txt')
@@ -576,6 +614,7 @@ Main message
         with create_test_files([
             ('invalid.json', '{"items": [{"invalid": "value"}]}')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             with self.assertRaises(SystemExit) as cm_exc:
@@ -590,6 +629,7 @@ Main message
             ('test.txt', 'Hello!'),
             ('test2.txt', 'Hello2!')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -605,6 +645,7 @@ Hello2!
 
     def test_include_url(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             # Create a mock Response object for the pull request
@@ -627,6 +668,7 @@ URL content
         with create_test_files([
             ('test.txt', 'Hello!')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path_var = os.path.join(temp_dir, '{{name}}.txt')
@@ -641,6 +683,7 @@ Hello!
         with create_test_files([
             ('test.txt', '')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -653,6 +696,7 @@ Hello!
         with create_test_files([
             ('test.txt', '\nHello!\n')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -664,7 +708,8 @@ Hello!
 
 
     def test_include_error(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             unknown_path = os.path.join('not-found', 'unknown.txt')
             with self.assertRaises(SystemExit) as cm_exc:
@@ -678,6 +723,7 @@ Hello!
         with create_test_files([
             ('test.txt', 'Hello, {{name}}!')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -692,6 +738,7 @@ Hello, World!
         with create_test_files([
             ('test.txt', 'Hello, {{name}}!')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -704,6 +751,7 @@ Hello, !
 
     def test_template_url(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             # Create a mock Response object for the pull request
@@ -726,6 +774,7 @@ Hello, World!
         with create_test_files([
             ('test.txt', '')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -738,6 +787,7 @@ Hello, World!
         with create_test_files([
             ('test.txt', '\nHello!\n')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -749,7 +799,8 @@ Hello!
 
 
     def test_template_error(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             unknown_path = os.path.join('not-found', 'unknown.txt')
             with self.assertRaises(SystemExit) as cm_exc:
@@ -764,6 +815,7 @@ Hello!
             ('test.txt', 'Hello!'),
             ('test2.txt', 'Hello2!')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -783,6 +835,7 @@ Hello2!
 
     def test_file_url(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             # Create a mock Response object for the pull request
@@ -805,6 +858,7 @@ URL content
 
     def test_file_url_error(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             # Create a mock Response object for the pull request
@@ -825,6 +879,7 @@ URL content
         with create_test_files([
             ('test.txt', 'Hello!')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -842,6 +897,7 @@ Hello!
         with create_test_files([
             ('test.txt', '')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -857,6 +913,7 @@ Hello!
         with create_test_files([
             ('test.txt', '\nHello!\n')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -870,11 +927,12 @@ Hello!
 
 
     def test_file_error(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             unknown_path = os.path.join('not-found', 'unknown.txt')
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-f', unknown_path, '-s', ''])
+                main(['-i', unknown_path, '-s', ''])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
         self.assertEqual(stderr.getvalue(), f"\nError: [Errno 2] No such file or directory: {unknown_path!r}\n")
@@ -885,6 +943,7 @@ Hello!
             ('test.txt', 'Hello!'),
             (('subdir', 'sub.txt'), 'Goodbye!')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -907,6 +966,7 @@ Goodbye!
             (('subdir', 'sub.txt'), 'Goodbye!'),
             (('subdir2', 'sub2.txt'), 'Goodbye2!')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             sub_path = os.path.join(temp_dir, 'subdir', 'sub.txt')
@@ -925,6 +985,7 @@ Goodbye!
             ('test.txt', 'Hello!'),
             (('subdir', 'sub.txt'), 'Goodbye!')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -941,6 +1002,7 @@ Hello!
         with create_test_files([
             ('test.txt', '')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             file_path = os.path.join(temp_dir, 'test.txt')
@@ -956,6 +1018,7 @@ Hello!
         with create_test_files([
             (('subdir', 'file1.md'), 'Content1')
         ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             with self.assertRaises(SystemExit) as cm_exc:
@@ -966,7 +1029,8 @@ Hello!
 
 
     def test_dir_relative_not_found(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             unknown_path = os.path.join('not-found', 'unknown')
             unknown_path2 = os.path.join('not-found', 'unknown2')
@@ -978,7 +1042,8 @@ Hello!
 
 
     def test_variable(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-v', 'first', 'Foo', '-v', 'Last', 'Bar', '-m', 'Hello, {{first}} {{ Last }}!', '-s', ''])
         self.assertEqual(stdout.getvalue(), '''\
@@ -988,7 +1053,8 @@ Hello, Foo Bar!
 
 
     def test_variable_unknown(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-v', 'Last', 'Bar', '-m', 'Hello, {{first}} {{ Last }}!', '-s', ''])
         self.assertEqual(stdout.getvalue(), '''\
@@ -998,7 +1064,8 @@ Hello,  Bar!
 
 
     def test_list_invalid_api(self):
-        with unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             with self.assertRaises(SystemExit) as cm_exc:
                 main(['--list', 'invalid'])
