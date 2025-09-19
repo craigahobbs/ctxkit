@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.2 (2025-09-19)
+
+- [b993f13](https://github.com/craigahobbs/ctxkit/commit/b993f13) - add CTXKIT_FLAGS environment variable
+
 ## 1.6.1 (2025-09-19)
 
 - [04db1e4](https://github.com/craigahobbs/ctxkit/commit/04db1e4) - add inline instructions to default system prompt
