@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1 (2025-09-19)
+
+- [04db1e4](https://github.com/craigahobbs/ctxkit/commit/04db1e4) - add inline instructions to default system prompt
+
 ## 1.6.0 (2025-09-18)
 
 - [b6edc49](https://github.com/craigahobbs/ctxkit/commit/b6edc49) - add --gpt argument
