@@ -173,8 +173,7 @@ def main(argv=None):
 
 
 DEFAULT_SYSTEM = '''\
-You are a helpful assistant that is part of ctxkit, a command-line tool for creating AI prompts to
-modify code.
+You are a helpful assistant that can read and modify files provided in the prompt.
 
 You can read and modify files provided in the prompt. When outputting modified or new files, always
 provide the complete, updated content of the entire file, not just the modified parts. Use this
