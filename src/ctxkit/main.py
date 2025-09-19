@@ -67,7 +67,7 @@ def main(argv=None):
     api_group.add_argument('--ollama', metavar='MODEL', dest='models', action=TypedItemAction, item_type='ollama',
                            help='pass to the Ollama API')
     api_group.add_argument('--noapi', nargs=0, dest='models', action=TypedItemAction, item_type='noapi',
-                           help='pass to the Ollama API')
+                           help='pass to no API')
     api_group.add_argument('--list', metavar='API', help='list available models for the API (i.e. "ollama")')
     api_group.add_argument('--temp', metavar='NUM', type=float, help='set the model response temperature')
     api_group.add_argument('--topp', metavar='NUM', type=float, help='set the model response top_p')

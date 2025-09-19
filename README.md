@@ -216,9 +216,9 @@ grok-code-fast` to set a default model. `CTXKIT_FLAGS` is prepended to the comma
 ```
 usage: ctxkit [-h] [-g] [-e] [-o PATH] [-b] [-c PATH] [-m TEXT] [-i PATH]
               [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-s PATH] [-x EXT]
-              [-l INT] [--claude MODEL | --gpt MODEL | --grok MODEL |
-              --ollama MODEL] [--list API] [--temp NUM] [--topp NUM]
-              [--maxtok NUM]
+              [-l INT] [--claude MODEL] [--gpt MODEL] [--grok MODEL]
+              [--ollama MODEL] [--noapi] [--list API] [--temp NUM]
+              [--topp NUM] [--maxtok NUM]
 
 options:
   -h, --help           show this help message and exit
@@ -248,6 +248,7 @@ API Calling:
   --gpt MODEL          pass to the ChatGPT API
   --grok MODEL         pass to the Grok API
   --ollama MODEL       pass to the Ollama API
+  --noapi              pass to no API
   --list API           list available models for the API (i.e. "ollama")
   --temp NUM           set the model response temperature
   --topp NUM           set the model response top_p
