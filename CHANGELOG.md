@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.4 (2025-09-19)
+
+- [9d140b3](https://github.com/craigahobbs/ctxkit/commit/9d140b3) - fix command line help
+
 ## 1.6.3 (2025-09-19)
 
 - [39338c0](https://github.com/craigahobbs/ctxkit/commit/39338c0) - improve default system prompt
