@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0 (2025-09-22)
+
+- [92f5aef](https://github.com/craigahobbs/ctxkit/commit/92f5aef) - Replace --claude, --gpt, --grok, and --ollama with --api API argument
+
 ## 1.6.4 (2025-09-19)
 
 - [9d140b3](https://github.com/craigahobbs/ctxkit/commit/9d140b3) - fix command line help
