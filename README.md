@@ -14,11 +14,11 @@ ctxkit is a command-line tool for creating AI prompts to modify code. It works a
 - extract modified or newly-created files in-place
 
 In the following example, the project's Python source code is included (`-d src -x py`), then a
-change request message (`-m`), then call the xAI API (`--grok`), and finally extract the modified
+change request message (`-m`), then call the xAI API (`--api grok`), and finally extract the modified
 project files (`--extract`):
 
 ```sh
-ctxkit -d src -x py -m 'Please add -q argument' --grok grok-code-fast --extract
+ctxkit -d src -x py -m 'Please add -q argument' --api grok grok-4-fast-reasoning --extract
 ```
 
 
@@ -47,31 +47,31 @@ pip install ctxkit
 
 ctxkit supports the following APIs:
 
-`--claude` - [Claude (Anthropic) API](https://console.anthropic.com/dashboard/)
+`claude` - [Claude (Anthropic) API](https://console.anthropic.com/dashboard/)
 
 ```sh
 export ANTHROPIC_API_KEY=<key>
-ctxkit -m 'Hello!' --claude claude-3-5-haiku-latest
+ctxkit -m 'Hello!' --api claude claude-3-5-haiku-latest
 ```
 
-`--gpt` - [ChatGPT (OpenAI) API](https://platform.openai.com/docs/api-reference/chat)
+`gpt` - [ChatGPT (OpenAI) API](https://platform.openai.com/docs/api-reference/chat)
 
 ```sh
 export OPENAI_API_KEY=<key>
-ctxkit -m 'Hello!' --gpt model-name
+ctxkit -m 'Hello!' --api gpt model-name
 ```
 
-`--grok` - [Grok (xAI) API](https://docs.x.ai/docs/tutorial)
+`grok` - [Grok (xAI) API](https://docs.x.ai/docs/tutorial)
 
 ```sh
 export XAI_API_KEY=<key>
-ctxkit -m 'Hello!' --grok grok-3
+ctxkit -m 'Hello!' --api grok grok-3
 ```
 
-`--ollama` - [Ollama API](https://ollama.com/)
+`ollama` - [Ollama API](https://ollama.com/)
 
 ```sh
-ctxkit -m 'Hello!' --ollama gpt-oss:20b
+ctxkit -m 'Hello!' --api ollama gpt-oss:20b
 ```
 
 
@@ -89,7 +89,7 @@ ctxkit --list claude
 You can call an API with a prompt from `stdin` by passing no prompt items:
 
 ```sh
-echo 'Hello!' | ctxkit --ollama gpt-oss:20b
+echo 'Hello!' | ctxkit --api ollama gpt-oss:20b
 ```
 
 
@@ -99,7 +99,7 @@ When a prompt includes one or more files, the AI may respond with modified versi
 You can extract the modified files using the `-e` (or `--extract`) argument:
 
 ```
-ctxkit -d src -x py -m "Add a -q argument to silence output" --grok grok-code-fast --extract
+ctxkit -d src -x py -m "Add a -q argument to silence output" --api grok grok-4-fast-reasoning --extract
 ```
 
 In this example, ctxkit passes a prompt with all of the project source and a change request, to
@@ -210,15 +210,14 @@ Using the `ctxkit` command line application, you can add any number of ordered *
 the following types: configuration files (`-c`), messages (`-m`), file path or URL content (`-i` and
 `-f`), and directories (`-d`).
 
-The `CTXKIT_FLAGS` environment variable is used to define default arguments, such as `--grok
-grok-code-fast` to set a default model. `CTXKIT_FLAGS` is prepended to the command-line arguments.
+The `CTXKIT_FLAGS` environment variable is used to define default arguments, such as `--api grok
+grok-4-fast-reasoning` to set a default model. `CTXKIT_FLAGS` is prepended to the command-line arguments.
 
 ```
 usage: ctxkit [-h] [-g] [-e] [-o PATH] [-b] [-c PATH] [-m TEXT] [-i PATH]
               [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-s PATH] [-x EXT]
-              [-l INT] [--claude MODEL] [--gpt MODEL] [--grok MODEL]
-              [--ollama MODEL] [--noapi] [--list API] [--temp NUM]
-              [--topp NUM] [--maxtok NUM]
+              [-l INT] [--api API MODEL] [--list API] [--temp NUM]
+              [--topp NUM] [--maxtok NUM] [--noapi]
 
 options:
   -h, --help           show this help message and exit
@@ -244,15 +243,24 @@ Directory Options:
   -l, --depth INT      the maximum directory depth, default is 0 (infinite)
 
 API Calling:
-  --claude MODEL       pass to the Claude API
-  --gpt MODEL          pass to the ChatGPT API
-  --grok MODEL         pass to the Grok API
-  --ollama MODEL       pass to the Ollama API
-  --noapi              pass to no API
-  --list API           list available models for the API (i.e. "ollama")
+  --api API MODEL      pass to an API provider (see "API Providers")
+  --list API           list API provider models (see "API Providers")
   --temp NUM           set the model response temperature
   --topp NUM           set the model response top_p
   --maxtok NUM         set the model response max tokens
+  --noapi              do not pass to an API provider
+
+API Providers:
+  claude - Claude (Anthropic) API
+  gpt    - ChatGPT (OpenAI) API
+  grok   - Grok (xAI) API
+  ollama - Ollama API
+
+Examples:
+  ctxkit --api ollama gpt-oss:20b -m "How do I count code lines?"
+  ctxkit --api grok grok-4-fast-reasoning -f README.md -f main.py -f test_main.py -m "Add a -q argument" -e
+  ctxkit --api claude claude-opus-4-1 -f README.md -d src -x py -i spec.txt -e
+  ctxkit --list grok
 ```
 
 

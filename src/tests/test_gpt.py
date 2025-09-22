@@ -34,7 +34,7 @@ class TestGPT(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '--gpt', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -78,7 +78,7 @@ class TestGPT(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '--gpt', 'model-name'])
+            main(['-m', 'Hello', '--api', 'gpt', 'model-name'])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -127,7 +127,7 @@ class TestGPT(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '-i', test_path, '--gpt', 'model-name', '-o', test_path, '-s', ''])
+            main(['-m', 'Hello', '-i', test_path, '--api', 'gpt', 'model-name', '-o', test_path, '-s', ''])
 
             with open(test_path, 'r', encoding='utf-8') as output:
                 test_text = output.read()
@@ -175,7 +175,7 @@ class TestGPT(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '--gpt', 'model-name', '--temp', '0.2', '-s', ''])
+            main(['-m', 'Hello', '--api', 'gpt', 'model-name', '--temp', '0.2', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -220,7 +220,7 @@ class TestGPT(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '--gpt', 'model-name', '--topp', '0.2', '-s', ''])
+            main(['-m', 'Hello', '--api', 'gpt', 'model-name', '--topp', '0.2', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -265,7 +265,7 @@ class TestGPT(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '--gpt', 'model-name', '--maxtok', '100', '-s', ''])
+            main(['-m', 'Hello', '--api', 'gpt', 'model-name', '--maxtok', '100', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -307,7 +307,7 @@ class TestGPT(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '--gpt', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -354,7 +354,7 @@ class TestGPT(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '--gpt', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -401,7 +401,7 @@ data: {"choices": [{"delta": {"content": "Goodbye2"}}]}
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '--gpt', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -448,7 +448,7 @@ data:  {"content": "Goodbye"}}]}
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '--gpt', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -493,7 +493,7 @@ data:  {"content": "Goodbye"}}]}
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['--gpt', 'model-name', '-s', ''])
+            main(['--api', 'gpt', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -540,7 +540,7 @@ data:  {"content": "Goodbye"}}]}
 
             with create_test_files([]) as temp_dir:
                 output_path = os.path.join(temp_dir, 'output.txt')
-                main(['--gpt', 'model-name', '-o', output_path, '-s', ''])
+                main(['--api', 'gpt', 'model-name', '-o', output_path, '-s', ''])
                 with open(output_path, 'r', encoding='utf-8') as output:
                     output_text = output.read()
             self.assertEqual(output_text, 'Goodbye\n')
@@ -585,7 +585,7 @@ data:  {"content": "Goodbye"}}]}
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['--gpt', 'model-name', '-s', ''])
+                main(['--api', 'gpt', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
@@ -627,7 +627,7 @@ data:  {"content": "Goodbye"}}]}
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-m', 'Hello', '--gpt', 'model-name', '-s', ''])
+                main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
@@ -655,12 +655,13 @@ data:  {"content": "Goodbye"}}]}
 
     def test_gpt_no_api_key(self):
         with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', None), \
+             unittest.mock.patch('urllib3.PoolManager'), \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-m', 'Hello', '--gpt', 'model-name', '-s', ''])
+                main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
@@ -748,6 +749,7 @@ gpt-4-turbo-preview
 
     def test_gpt_list_no_api_key(self):
         with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', None), \
+             unittest.mock.patch('urllib3.PoolManager'), \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:

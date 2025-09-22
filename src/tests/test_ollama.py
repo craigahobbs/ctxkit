@@ -39,7 +39,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
-            main(['-m', 'Hello', '--ollama', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'ollama', 'model-name', '-s', ''])
 
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
         self.assertListEqual(
@@ -99,7 +99,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
-            main(['-m', 'Hello', '--ollama', 'model-name'])
+            main(['-m', 'Hello', '--api', 'ollama', 'model-name'])
 
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
         self.assertListEqual(
@@ -164,7 +164,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
-            main(['-m', 'Hello', '-i', test_path, '--ollama', 'model-name', '-o', test_path, '-s', ''])
+            main(['-m', 'Hello', '-i', test_path, '--api', 'ollama', 'model-name', '-o', test_path, '-s', ''])
 
             with open(test_path, 'r', encoding='utf-8') as output:
                 test_text = output.read()
@@ -228,7 +228,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
-            main(['-m', 'Hello', '--ollama', 'model-name', '--temp', '0.2', '-s', ''])
+            main(['-m', 'Hello', '--api', 'ollama', 'model-name', '--temp', '0.2', '-s', ''])
 
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
         self.assertListEqual(
@@ -291,7 +291,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
-            main(['-m', 'Hello', '--ollama', 'model-name', '--topp', '0.2', '-s', ''])
+            main(['-m', 'Hello', '--api', 'ollama', 'model-name', '--topp', '0.2', '-s', ''])
 
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
         self.assertListEqual(
@@ -354,7 +354,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
-            main(['-m', 'Hello', '--ollama', 'model-name', '--maxtok', '100', '-s', ''])
+            main(['-m', 'Hello', '--api', 'ollama', 'model-name', '--maxtok', '100', '-s', ''])
 
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
         self.assertListEqual(
@@ -418,7 +418,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
-            main(['-m', 'Hello', '--ollama', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'ollama', 'model-name', '-s', ''])
 
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
         self.assertListEqual(
@@ -479,7 +479,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
-            main(['--ollama', 'model-name', '-s', ''])
+            main(['--api', 'ollama', 'model-name', '-s', ''])
 
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
         self.assertListEqual(
@@ -542,7 +542,7 @@ class TestOllama(unittest.TestCase):
 
             with create_test_files([]) as temp_dir:
                 output_path = os.path.join(temp_dir, 'output.txt')
-                main(['--ollama', 'model-name', '-o', output_path, '-s', ''])
+                main(['--api', 'ollama', 'model-name', '-o', output_path, '-s', ''])
                 with open(output_path, 'r', encoding='utf-8') as output:
                     output_text = output.read()
             self.assertEqual(output_text, 'Hi there!\n')
@@ -603,7 +603,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
-            main(['--ollama', 'model-name', '-s', ''])
+            main(['--api', 'ollama', 'model-name', '-s', ''])
 
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
         self.assertListEqual(
@@ -665,7 +665,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['--ollama', 'model-name', '-s', ''])
+                main(['--api', 'ollama', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
@@ -718,7 +718,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance.request.return_value = mock_show_response
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-m', 'Hello', '--ollama', 'model-name', '-s', ''])
+                main(['-m', 'Hello', '--api', 'ollama', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(mock_pool_manager_instance.request.call_count, 1)
@@ -760,7 +760,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-m', 'Hello', '--ollama', 'model-name', '-s', ''])
+                main(['-m', 'Hello', '--api', 'ollama', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)
@@ -822,7 +822,7 @@ class TestOllama(unittest.TestCase):
             mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-m', 'Hello', '--ollama', 'model-name', '-s', ''])
+                main(['-m', 'Hello', '--api', 'ollama', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(mock_pool_manager_instance.request.call_count, 2)

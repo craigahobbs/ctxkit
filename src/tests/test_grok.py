@@ -34,7 +34,7 @@ class TestGrok(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -79,7 +79,7 @@ class TestGrok(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name'])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name'])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -129,7 +129,7 @@ class TestGrok(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '-i', test_path, '--grok', 'model-name', '-o', test_path, '-s', ''])
+            main(['-m', 'Hello', '-i', test_path, '--api', 'grok', 'model-name', '-o', test_path, '-s', ''])
 
             with open(test_path, 'r', encoding='utf-8') as output:
                 test_text = output.read()
@@ -178,7 +178,7 @@ class TestGrok(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '--temp', '0.2', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '--temp', '0.2', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -224,7 +224,7 @@ class TestGrok(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '--topp', '0.2', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '--topp', '0.2', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -270,7 +270,7 @@ class TestGrok(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '--maxtok', '100', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '--maxtok', '100', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -313,7 +313,7 @@ class TestGrok(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -360,7 +360,7 @@ class TestGrok(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -408,7 +408,7 @@ data: {"choices": [{"delta": {"content": "Goodbye2"}}]}
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -456,7 +456,7 @@ data:  {"content": "Goodbye"}}]}
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -502,7 +502,7 @@ data:  {"content": "Goodbye"}}]}
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['--grok', 'model-name', '-s', ''])
+            main(['--api', 'grok', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -550,7 +550,7 @@ data:  {"content": "Goodbye"}}]}
 
             with create_test_files([]) as temp_dir:
                 output_path = os.path.join(temp_dir, 'output.txt')
-                main(['--grok', 'model-name', '-o', output_path, '-s', ''])
+                main(['--api', 'grok', 'model-name', '-o', output_path, '-s', ''])
                 with open(output_path, 'r', encoding='utf-8') as output:
                     output_text = output.read()
             self.assertEqual(output_text, 'Goodbye\n')
@@ -596,7 +596,7 @@ data:  {"content": "Goodbye"}}]}
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['--grok', 'model-name', '-s', ''])
+                main(['--api', 'grok', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
@@ -639,7 +639,7 @@ data:  {"content": "Goodbye"}}]}
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-m', 'Hello', '--grok', 'model-name', '-s', ''])
+                main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
@@ -668,12 +668,13 @@ data:  {"content": "Goodbye"}}]}
 
     def test_grok_no_api_key(self):
         with unittest.mock.patch('ctxkit.grok.XAI_API_KEY', None), \
+             unittest.mock.patch('urllib3.PoolManager'), \
              unittest.mock.patch.dict('os.environ', {'CTXKIT_FLAGS': ''}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-m', 'Hello', '--grok', 'model-name', '-s', ''])
+                main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
@@ -761,6 +762,7 @@ grok-vision-beta
 
     def test_grok_list_no_api_key(self):
         with unittest.mock.patch('ctxkit.grok.XAI_API_KEY', None), \
+             unittest.mock.patch('urllib3.PoolManager'), \
              unittest.mock.patch.dict('os.environ', {'CTXKIT_FLAGS': ''}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:

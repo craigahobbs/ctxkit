@@ -34,7 +34,7 @@ class TestClaude(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['-m', 'Hello', '--claude', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -80,7 +80,7 @@ class TestClaude(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['-m', 'Hello', '--claude', 'model-name'])
+            main(['-m', 'Hello', '--api', 'claude', 'model-name'])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -131,7 +131,7 @@ class TestClaude(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['-m', 'Hello', '-i', test_path, '--claude', 'model-name', '-o', test_path, '-s', ''])
+            main(['-m', 'Hello', '-i', test_path, '--api', 'claude', 'model-name', '-o', test_path, '-s', ''])
 
             with open(test_path, 'r', encoding='utf-8') as output:
                 test_text = output.read()
@@ -181,7 +181,7 @@ class TestClaude(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['-m', 'Hello', '--claude', 'model-name', '--temp', '0.2', '-s', ''])
+            main(['-m', 'Hello', '--api', 'claude', 'model-name', '--temp', '0.2', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -228,7 +228,7 @@ class TestClaude(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['-m', 'Hello', '--claude', 'model-name', '--topp', '0.2', '-s', ''])
+            main(['-m', 'Hello', '--api', 'claude', 'model-name', '--topp', '0.2', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -272,7 +272,7 @@ class TestClaude(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['-m', 'Hello', '--claude', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -321,7 +321,7 @@ data: {"type": "content_block_delta", "delta": {"text": "Goodbye2"}}
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['-m', 'Hello', '--claude', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -370,7 +370,7 @@ data: {"text": "Goodbye"}}
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['-m', 'Hello', '--claude', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -417,7 +417,7 @@ data: {"text": "Goodbye"}}
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['--claude', 'model-name', '-s', ''])
+            main(['--api', 'claude', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -466,7 +466,7 @@ data: {"text": "Goodbye"}}
 
             with create_test_files([]) as temp_dir:
                 output_path = os.path.join(temp_dir, 'output.txt')
-                main(['--claude', 'model-name', '-o', output_path, '-s', ''])
+                main(['--api', 'claude', 'model-name', '-o', output_path, '-s', ''])
                 with open(output_path, 'r', encoding='utf-8') as output:
                     output_text = output.read()
             self.assertEqual(output_text, 'Goodbye\n')
@@ -513,7 +513,7 @@ data: {"text": "Goodbye"}}
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['--claude', 'model-name', '-s', ''])
+                main(['--api', 'claude', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
@@ -557,7 +557,7 @@ data: {"text": "Goodbye"}}
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-m', 'Hello', '--claude', 'model-name', '-s', ''])
+                main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
@@ -587,12 +587,13 @@ data: {"text": "Goodbye"}}
 
     def test_claude_no_api_key(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', None), \
+             unittest.mock.patch('urllib3.PoolManager'), \
              unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-m', 'Hello', '--claude', 'model-name', '-s', ''])
+                main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
@@ -620,7 +621,7 @@ data: {"text": "Goodbye"}}
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['-m', 'Hello', '--claude', 'model-name', '-s', ''])
+            main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
@@ -668,7 +669,7 @@ data: {"text": "Goodbye"}}
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
             with self.assertRaises(SystemExit) as cm_exc:
-                main(['-m', 'Hello', '--claude', 'model-name', '-s', ''])
+                main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
 
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
@@ -779,6 +780,7 @@ claude-3-sonnet-20240229
 
     def test_claude_list_no_api_key(self):
         with unittest.mock.patch('ctxkit.claude.ANTHROPIC_API_KEY', None), \
+             unittest.mock.patch('urllib3.PoolManager'), \
              unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:

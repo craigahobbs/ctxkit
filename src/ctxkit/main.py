@@ -31,6 +31,13 @@ def main(argv=None):
     argv_env = os.getenv('CTXKIT_FLAGS', '').split()
     argv_combined = argv_env + (sys.argv[1:] if argv is None else argv)
 
+    # Compute the API provider documentation
+    api_doc_lines = []
+    api_desc_indent = max(len(api) for api in API_PROVIDERS) + 1
+    for api in sorted(API_PROVIDERS.keys()):
+        api_doc_lines.append(f'  {api}{" " * (api_desc_indent - len(api))}- {API_PROVIDERS[api]["description"]}')
+    api_doc = '\n'.join(api_doc_lines)
+
     # Command line arguments
     parser = argparse.ArgumentParser(prog='ctxkit')
     parser.add_argument('-g', '--config-help', action='store_true', help='display the JSON configuration file format')
@@ -58,22 +65,26 @@ def main(argv=None):
     dir_group.add_argument('-x', '--ext', action='append', default=[], help='add a directory text file extension')
     dir_group.add_argument('-l', '--depth', metavar='INT', type=int, default=0, help='the maximum directory depth, default is 0 (infinite)')
     api_group = parser.add_argument_group('API Calling')
-    api_group.add_argument('--claude', metavar='MODEL', dest='models', action=TypedItemAction, item_type='claude',
-                           help='pass to the Claude API')
-    api_group.add_argument('--gpt', metavar='MODEL', dest='models', action=TypedItemAction, item_type='gpt',
-                           help='pass to the ChatGPT API')
-    api_group.add_argument('--grok', metavar='MODEL', dest='models', action=TypedItemAction, item_type='grok',
-                           help='pass to the Grok API')
-    api_group.add_argument('--ollama', metavar='MODEL', dest='models', action=TypedItemAction, item_type='ollama',
-                           help='pass to the Ollama API')
-    api_group.add_argument('--noapi', nargs=0, dest='models', action=TypedItemAction, item_type='noapi',
-                           help='pass to no API')
-    api_group.add_argument('--list', metavar='API', help='list available models for the API (i.e. "ollama")')
+    api_group.add_argument('--api', nargs=2, metavar=('API', 'MODEL'), action=APIAction,
+                           help='pass to an API provider (see "API Providers")')
+    api_group.add_argument('--list', metavar='API', action=APIAction,
+                           help='list API provider models (see "API Providers")')
     api_group.add_argument('--temp', metavar='NUM', type=float, help='set the model response temperature')
     api_group.add_argument('--topp', metavar='NUM', type=float, help='set the model response top_p')
     api_group.add_argument('--maxtok', metavar='NUM', type=int, help='set the model response max tokens')
+    api_group.add_argument('--noapi', dest='api', action='store_false', help='do not pass to an API provider')
+    parser.epilog = f'''\
+API Providers:
+{api_doc}
+
+Examples:
+  ctxkit --api ollama gpt-oss:20b -m "How do I count code lines?"
+  ctxkit --api grok grok-4-fast-reasoning -f README.md -f main.py -f test_main.py -m "Add a -q argument" -e
+  ctxkit --api claude claude-opus-4-1-20250805 -f README.md -d src -x py -i spec.txt -e
+  ctxkit --list grok
+'''
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
     args = parser.parse_args(args=argv_combined)
-    model_type = args.models[-1][0] if args.models and args.models[-1][0] != 'noapi' else None
 
     # Show configuration file format?
     if args.config_help:
@@ -86,10 +97,7 @@ def main(argv=None):
     try:
         # List models?
         if args.list:
-            list_funcs = _API_FUNCTIONS.get(args.list)
-            if not list_funcs:
-                parser.error(f'Invalid model API "{args.list}"')
-            models = list_funcs['list'](pool_manager)
+            models = API_PROVIDERS[args.list]['list'](pool_manager)
             print('\n'.join(sorted(models)))
             return
 
@@ -128,7 +136,7 @@ def main(argv=None):
                 os.makedirs(output_dir, exist_ok=True)
 
         # Pass stdin to an AI?
-        if model_type and not config['items']:
+        if args.api and not config['items']:
             prompt = sys.stdin.read()
             if args.output:
                 with open(args.output, 'w', encoding='utf-8') as output:
@@ -142,7 +150,7 @@ def main(argv=None):
             parser.error('no prompt items specified')
 
         # Process the configuration
-        if model_type:
+        if args.api:
             # Pass prompt to an AI
             prompt = process_config(pool_manager, config, {})
             if args.output:
@@ -170,6 +178,57 @@ def main(argv=None):
     except Exception as exc:
         print(f'\nError: {exc}', file=sys.stderr)
         sys.exit(2)
+
+
+# API providers
+API_PROVIDERS = {
+    'claude': {
+        'description': 'Claude (Anthropic) API',
+        'chat': claude_chat,
+        'list': claude_list
+        },
+    'gpt': {
+        'description': 'ChatGPT (OpenAI) API',
+        'chat': gpt_chat,
+        'list': gpt_list
+    },
+    'grok': {
+        'description': 'Grok (xAI) API',
+        'chat': grok_chat,
+        'list': grok_list
+    },
+    'ollama': {
+        'description': 'Ollama API',
+        'chat': ollama_chat,
+        'list': ollama_list
+    }
+}
+
+
+# argparse action to validate API provider
+class APIAction(argparse.Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        provider = values[0] if isinstance(values, list) else values
+        if provider not in API_PROVIDERS:
+            parser.error(f'Invalid API provider "{provider}". Valid options are: {", ".join(sorted(API_PROVIDERS.keys()))}')
+        setattr(namespace, self.dest, values)
+
+
+# argparse action typed-value items
+class TypedItemAction(argparse.Action):
+
+    def __init__(self, *args, **kwargs):
+        self.item_type = kwargs.pop('item_type')
+        super().__init__(*args, **kwargs)
+
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        items = getattr(namespace, self.dest)
+        if items is None:
+            items = []
+            setattr(namespace, self.dest, items)
+        items.append((self.item_type, values))
 
 
 DEFAULT_SYSTEM = '''\
@@ -204,41 +263,14 @@ Do not output files that have not changed.
 You can include explanatory text outside of these file tags.'''
 
 
-# Map of model API (e.g. 'ollama') to model API function
-_API_FUNCTIONS = {
-    'claude': {'chat': claude_chat, 'list': claude_list},
-    'gpt': {'chat': gpt_chat, 'list': gpt_list},
-    'grok': {'chat': grok_chat, 'list': grok_list},
-    'ollama': {'chat': ollama_chat, 'list': ollama_list}
-}
-
-
-# argparse argument type for prompt items
-class TypedItemAction(argparse.Action):
-
-    def __init__(self, *args, **kwargs):
-        self.item_type = kwargs.pop('item_type')
-        super().__init__(*args, **kwargs)
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        # Initialize the destination list if it doesn't exist
-        items = getattr(namespace, self.dest)
-        if items is None:
-            items = []
-            setattr(namespace, self.dest, items)
-
-        # Append tuple (item_type, value)
-        items.append((self.item_type, values))
-
-
 # Helper to output the response from stdin to passed to an API
 def _output_api_call(args, pool_manager, output, system_prompt, prompt):
-    model_type, model_name = args.models[-1] if args.models else (None, None)
-    api_func = _API_FUNCTIONS[model_type]['chat']
+    provider, model = args.api
+    api_func = API_PROVIDERS[provider]['chat']
 
     # Write the response to the output
     chunks = []
-    for chunk in api_func(pool_manager, model_name, system_prompt, prompt, args.temp, args.topp, args.maxtok):
+    for chunk in api_func(pool_manager, model, system_prompt, prompt, args.temp, args.topp, args.maxtok):
         chunks.append(chunk)
         output.write(chunk)
         output.flush()

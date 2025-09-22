@@ -9,7 +9,7 @@ APP ?= app.md
 
 
 # The model to use
-MODEL ?= $(if $(CLAUDE),--claude claude-opus-4-1,--grok grok-code-fast-1)
+MODEL ?= --api $(if $(CLAUDE),claude claude-opus-4-1,grok grok-4-fast-reasoning)
 
 
 # The ctxkit options

@@ -12,7 +12,7 @@ import unittest.mock
 import urllib3
 
 import ctxkit.__main__
-from ctxkit.main import DEFAULT_SYSTEM, main
+from ctxkit.main import API_PROVIDERS, DEFAULT_SYSTEM, main
 
 
 # Helper context manager to create a list of files in a temporary directory
@@ -39,7 +39,8 @@ class TestMain(unittest.TestCase):
 
 
     def test_help_config(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-g'])
@@ -48,7 +49,8 @@ class TestMain(unittest.TestCase):
 
 
     def test_ctxkit_flags(self):
-        with unittest.mock.patch.dict('os.environ', {'CTXKIT_FLAGS': ''}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {'CTXKIT_FLAGS': ''}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-m', 'Hello', '-s', ''])
@@ -58,7 +60,7 @@ class TestMain(unittest.TestCase):
 
     def test_ctxkit_flags_noapi(self):
         with unittest.mock.patch('urllib3.PoolManager'), \
-             unittest.mock.patch.dict('os.environ', {'CTXKIT_FLAGS': '--grok grok-3'}, clear=True), \
+             unittest.mock.patch.dict('os.environ', {'CTXKIT_FLAGS': '--api grok grok-3'}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-m', 'Hello', '-s', '', '--noapi'])
@@ -67,7 +69,8 @@ class TestMain(unittest.TestCase):
 
 
     def test_system_default(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-m', 'Hello', '-m', 'Goodbye'])
@@ -145,7 +148,8 @@ Hello
 
 
     def test_no_items(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             with self.assertRaises(SystemExit) as cm_exc:
@@ -268,7 +272,7 @@ Hello
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '--extract', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '--extract', '-s', ''])
 
             with open(file_path, 'r', encoding='utf-8') as file_:
                 file_text = file_.read()
@@ -342,7 +346,7 @@ File
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '--extract', '-b', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '--extract', '-b', '-s', ''])
 
             with open(file_path, 'r', encoding='utf-8') as file_:
                 file_text = file_.read()
@@ -415,7 +419,7 @@ ctxkit: delete
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--grok', 'model-name', '--extract', '-b', '-s', ''])
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '--extract', '-b', '-s', ''])
 
             self.assertFalse(os.path.exists(file_path))
             self.assertFalse(os.path.exists(f'{file_path}.bak'))
@@ -450,7 +454,8 @@ ctxkit: delete
 
 
     def test_message(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-m', 'Hello', '-m', 'Goodbye', '-s', ''])
@@ -708,7 +713,8 @@ Hello!
 
 
     def test_include_error(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             unknown_path = os.path.join('not-found', 'unknown.txt')
@@ -799,7 +805,8 @@ Hello!
 
 
     def test_template_error(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             unknown_path = os.path.join('not-found', 'unknown.txt')
@@ -927,7 +934,8 @@ Hello!
 
 
     def test_file_error(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             unknown_path = os.path.join('not-found', 'unknown.txt')
@@ -1029,7 +1037,8 @@ Hello!
 
 
     def test_dir_relative_not_found(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             unknown_path = os.path.join('not-found', 'unknown')
@@ -1042,7 +1051,8 @@ Hello!
 
 
     def test_variable(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-v', 'first', 'Foo', '-v', 'Last', 'Bar', '-m', 'Hello, {{first}} {{ Last }}!', '-s', ''])
@@ -1053,7 +1063,8 @@ Hello, Foo Bar!
 
 
     def test_variable_unknown(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             main(['-v', 'Last', 'Bar', '-m', 'Hello, {{first}} {{ Last }}!', '-s', ''])
@@ -1063,12 +1074,29 @@ Hello,  Bar!
         self.assertEqual(stderr.getvalue(), '')
 
 
+    def test_api_invalid_api(self):
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['--api', 'invalid', 'model', '-m', 'Hello'])
+        self.assertEqual(cm_exc.exception.code, 2)
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertTrue(stderr.getvalue().endswith(
+            f'ctxkit: error: Invalid API provider "invalid". Valid options are: {", ".join(sorted(API_PROVIDERS.keys()))}\n'
+        ))
+
+
     def test_list_invalid_api(self):
-        with unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             with self.assertRaises(SystemExit) as cm_exc:
                 main(['--list', 'invalid'])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertTrue(stderr.getvalue().endswith('ctxkit: error: Invalid model API "invalid"\n'))
+        self.assertTrue(stderr.getvalue().endswith(
+            f'ctxkit: error: Invalid API provider "invalid". Valid options are: {", ".join(sorted(API_PROVIDERS.keys()))}\n'
+        ))
