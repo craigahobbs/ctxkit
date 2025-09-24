@@ -38,42 +38,38 @@ build/venv.build:
 	touch $@
 
 
-$(APP): build/venv.build
-	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/create.json -m 'The application filename is "$(APP)".' -i $(SPEC)
-
-
 .phony: start
 start:
-	$(MAKE) --no-print-directory clean
 	$(MAKE) --no-print-directory create
 	$(MAKE) --no-print-directory review
 	$(MAKE) --no-print-directory run
 
 
 .phony: create
-create: $(APP)
+create: build/venv.build
+	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/create.json -m 'The application filename is "$(APP)".' -i $(SPEC)
 
 
 .phony: improve
-improve: $(APP)
+improve: build/venv.build
 	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/improve.json -f $(APP)
 
 
 .phony: revert
-revert: $(APP)
+revert: build/venv.build
 	if [ -f $(APP).bak ]; then mv $(APP).bak $(APP); fi
 
 
 .phony: review
-review: $(APP)
+review: build/venv.build
 	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/review.json -f $(APP)
 
 
 .phony: run
-run: $(APP)
+run: build/venv.build
 	build/venv/bin/markdown-up $(APP)
 
 
 .phony: update
-update: $(APP)
+update: build/venv.build
 	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/update.json -i $(UPDATE) -c prompts/update2.json -f $(APP)
