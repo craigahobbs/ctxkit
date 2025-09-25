@@ -38,18 +38,7 @@ Here are a few tips for generating BareScript code:
 
 4. There is no `await` keyword in BareScript - it is implicit when calling `async` functions.
 
-5. Generate application code as Markdown content containing only a single `markdown-script`
-   code-block. For example:
-
-   ```markdown-script
-   function myAppMain():
-       # ...
-   endfunction
-
-   myAppMain()
-   ```
-
-6. Please use common BareScript best practices:
+5. Please use common BareScript best practices:
 
    - Use lower-case, camel-case for variables and function names
    - Prefix your globals with your application prefix (e.g. `myAppCategories`)
@@ -79,7 +68,7 @@ Here are a few tips for generating BareScript code:
    myAppMain()
    ```
 
-7. Always follow the BareScript common blank line rules:
+6. Always follow the BareScript common blank line rules:
 
    - ensure function definitions and global statement groups are separated by two blank lines
 
@@ -87,16 +76,10 @@ Here are a few tips for generating BareScript code:
 
    - within conditional blocks, ensure code statement groups are separated by a single blank line
 
-8. Always follow the BareScript common commenting rules:
+7. Always follow the BareScript common commenting rules:
 
    - ensure function definitions and global statement groups are adequately commented
 
    - within functions, ensure code statement groups are adequately commented
 
    - within conditional blocks, ensure code statement groups are adequately commented
-
-9. Do not use inline comments:
-
-   ```barescript
-   x = 1  # DO NOT USE
-   ```

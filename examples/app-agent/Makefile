@@ -23,7 +23,7 @@ help:
 
 .phony: clean
 clean:
-	rm -rf $(APP) $(APP).bak
+	rm -rf build/ $(APP) $(APP).bak
 
 
 .phony: superclean
