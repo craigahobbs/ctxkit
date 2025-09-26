@@ -2,9 +2,7 @@
     "items": [
         {"config": "base.json"},
         {"long": [
-            "==========",
-            "",
-            "Please create a MarkdownUp frontend application based on the following specification:"
+            "=========="
         ]}
     ]
 }
