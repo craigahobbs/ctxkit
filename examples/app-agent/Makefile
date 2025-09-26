@@ -17,7 +17,7 @@ MODEL ?= --api \
 
 # The ctxkit options
 CTXKIT_ARGS := -b$(if $(TEST),, --extract)$(if $(TEST_PROMPT), --noapi, $(MODEL))$(if $(ARGS), $(ARGS))
-CTXKIT_APP := -d $(APP)/ -x bare -x json
+CTXKIT_APP := -d $(APP)/ -x bare -x json -x md
 
 
 .phony: help
