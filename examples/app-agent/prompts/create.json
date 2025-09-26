@@ -2,7 +2,14 @@
     "items": [
         {"config": "base.json"},
         {"long": [
-            "=========="
+            "==========",
+            "",
+            "Please create a MarkdownUp application in the \"{{app}}/\" directory. At a minimum, create two files:",
+            "",
+            "\"{{app}}/{{app}}.bare\" - the MarkdownUp frontend application and main function. Do not run the main function in this file.",
+            "\"{{app}}/{{app}}.md\" - the application Markdown file that runs the main function",
+            "",
+            "Here's the application specification:"
         ]}
     ]
 }

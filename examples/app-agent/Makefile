@@ -9,7 +9,7 @@ APP ?= app
 
 
 # The model to use
-MODEL ?= --api $(if $(CLAUDE),claude claude-opus-4-1,grok grok-4-fast-reasoning)
+MODEL ?= --api $(if $(EXPERT),claude claude-opus-4-1,grok grok-4-fast-non-reasoning)
 
 
 # The ctxkit options
@@ -41,17 +41,16 @@ build/venv.build:
 
 .phony: create
 create: build/venv.build
-	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/create.json \
-		-m 'Please create a MarkdownUp application in the "$(APP)/" directory. At a minimum, create two files:' \
-		-m '    "$(APP)/$(APP).bare" - the MarkdownUp frontend application and main function. Do not run the main function.' \
-		-m '    "$(APP)/$(APP).md" - the application Markdown file that runs the main function' \
-		-m "Here's the application specification:" \
+	build/venv/bin/ctxkit $(CTXKIT_ARGS) \
+		-v app "$(APP)" \
+		-c prompts/create.json \
 		-i $(SPEC)
 
 
 .phony: improve
 improve: build/venv.build
-	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/improve.json $(CTXKIT_APP)
+	build/venv/bin/ctxkit $(CTXKIT_APP) $(CTXKIT_ARGS) \
+		-c prompts/improve.json
 
 
 .phony: lint
@@ -62,7 +61,7 @@ lint: build/venv.build
 .phony: lint-inner
 lint-inner: build/venv.build
 	@echo 'Compiling $(APP)/$(APP).bare ...'
-	@if ! build/venv/bin/bare -m $(APP)/$(APP).bare > build/compile.txt; then \
+	@if ! build/venv/bin/bare -d -m $(APP)/$(APP).bare > build/compile.txt; then \
 		echo 'Compile FAILED! Fixing...'; \
 		build/venv/bin/ctxkit $(CTXKIT_ARGS) $(CTXKIT_APP) -f build/compile.txt -m 'Please fix the BareScrdipt execution issues.'; \
 		false; \
@@ -80,7 +79,8 @@ lint-inner: build/venv.build
 
 .phony: review
 review: build/venv.build
-	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/review.json $(CTXKIT_APP)
+	build/venv/bin/ctxkit $(CTXKIT_APP) $(CTXKIT_ARGS) \
+		-c prompts/review.json
 
 
 .phony: run
@@ -90,4 +90,7 @@ run: build/venv.build
 
 .phony: update
 update: build/venv.build
-	build/venv/bin/ctxkit $(CTXKIT_ARGS) -c prompts/update.json -i $(UPDATE) -c prompts/update2.json $(CTXKIT_APP)
+	build/venv/bin/ctxkit $(CTXKIT_APP) $(CTXKIT_ARGS) \
+		-c prompts/update.json \
+		-i $(UPDATE) \
+		-c prompts/update2.json
