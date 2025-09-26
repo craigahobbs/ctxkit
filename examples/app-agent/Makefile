@@ -9,7 +9,10 @@ APP ?= app
 
 
 # The model to use
-MODEL ?= --api $(if $(EXPERT),claude claude-opus-4-1,grok grok-4-fast-non-reasoning)
+MODEL ?= --api \
+  $(if $(SMARTER), claude claude-opus-4-1, \
+  $(if $(SMART), grok grok-4-fast-reasoning, \
+  grok grok-4-fast-non-reasoning))
 
 
 # The ctxkit options
