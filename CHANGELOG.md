@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1 (2025-10-09)
+
+- [13a0663](https://github.com/craigahobbs/ctxkit/commit/13a0663) - improved OpenAI API error handling
+
+- [1bdaff4](https://github.com/craigahobbs/ctxkit/commit/1bdaff4) - remove python 3.9
+
 ## 2.0.0 (2025-09-22)
 
 - [92f5aef](https://github.com/craigahobbs/ctxkit/commit/92f5aef) - Replace --claude, --gpt, --grok, and --ollama with --api API argument
