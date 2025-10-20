@@ -8,10 +8,10 @@ Here are a few tips for generating BareScript code:
 
    ```barescript
    function myAppFunction():
-       items = objectNew( \\
-           'A', 1, \\
-           'B', 2 \\
-       )
+       items = { \\
+           'A': 1, \\
+           'B': 2 \\
+       }
        for item in objectKeys(items):
            markdownPrint('', '- ' + item)
        endfor
@@ -60,10 +60,10 @@ Here are a few tips for generating BareScript code:
    endfunction
 
    # The names to say "hello" to
-   myAppNames = arrayNew( \\
+   myAppNames = [ \\
        'World', \\
        'Pussy Cat' \\
-   )
+   ]
 
    myAppMain()
    ```
@@ -75,6 +75,7 @@ Here are a few tips for generating BareScript code:
    - within functions, ensure code statement groups are separated by a single blank line
 
    - within conditional blocks, ensure code statement groups are separated by a single blank line
+
 
 7. Always follow the BareScript common commenting rules:
 
