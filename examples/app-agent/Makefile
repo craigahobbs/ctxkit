@@ -70,7 +70,7 @@ lint-inner: build/venv.build
 		false; \
 	else \
 		echo 'Linting $(APP)/*.bare ...'; \
-		if ! build/venv/bin/bare -s $(APP)/*.bare > build/lint.txt; then \
+		if ! build/venv/bin/bare -x $(APP)/*.bare > build/lint.txt; then \
 			echo 'Lint FAILED! Fixing...'; \
 			build/venv/bin/ctxkit $(CTXKIT_ARGS) $(CTXKIT_APP) -f build/lint.txt -m 'Please fix the static analysis issues.'; \
 			false; \
