@@ -26,7 +26,7 @@ class TestGPT(unittest.TestCase):
             mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
-                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye"}',
                 b'data: [DONE]'
             ]
 
@@ -38,16 +38,14 @@ class TestGPT(unittest.TestCase):
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -70,7 +68,7 @@ class TestGPT(unittest.TestCase):
             mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
-                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye"}',
                 b'data: [DONE]'
             ]
 
@@ -82,17 +80,15 @@ class TestGPT(unittest.TestCase):
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'system', 'content': DEFAULT_SYSTEM},
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
+                'instructions': DEFAULT_SYSTEM,
                 'stream': True
             },
             preload_content=False,
@@ -119,7 +115,7 @@ class TestGPT(unittest.TestCase):
             mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
-                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye"}',
                 b'data: [DONE]'
             ]
 
@@ -135,16 +131,14 @@ class TestGPT(unittest.TestCase):
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello\n\ntest text'}
-                ],
+                'input': 'Hello\n\ntest text',
                 'stream': True
             },
             preload_content=False,
@@ -167,7 +161,7 @@ class TestGPT(unittest.TestCase):
             mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
-                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye"}',
                 b'data: [DONE]'
             ]
 
@@ -179,16 +173,14 @@ class TestGPT(unittest.TestCase):
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'temperature': 0.2,
                 'stream': True
             },
@@ -212,7 +204,7 @@ class TestGPT(unittest.TestCase):
             mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
-                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye"}',
                 b'data: [DONE]'
             ]
 
@@ -224,16 +216,14 @@ class TestGPT(unittest.TestCase):
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'top_p': 0.2,
                 'stream': True
             },
@@ -257,7 +247,7 @@ class TestGPT(unittest.TestCase):
             mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
-                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye"}',
                 b'data: [DONE]'
             ]
 
@@ -269,17 +259,15 @@ class TestGPT(unittest.TestCase):
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
-                'max_tokens': 100,
+                'input': 'Hello',
+                'max_output_tokens': 100,
                 'stream': True
             },
             preload_content=False,
@@ -311,16 +299,14 @@ class TestGPT(unittest.TestCase):
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -332,7 +318,7 @@ class TestGPT(unittest.TestCase):
         self.assertEqual(stderr.getvalue(), '')
 
 
-    def test_gpt_no_content(self):
+    def test_gpt_no_delta(self):
         with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
@@ -343,10 +329,10 @@ class TestGPT(unittest.TestCase):
             mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
-                b'data: {"choices": [{"delta": {"content": "Goodbye\\n"}}]}',
-                b'data: {"choices": [{"delta": {}}]}',
-                b'data: {"choices": [{"delta": {"content": "Goodbye2"}}]}',
-                b'data: {"choices": []}',  # No choices
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye\\n"}',
+                b'data: {"type": "response.output_text.delta"}',
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye2"}',
+                b'data: {"type": "other_event"}',
                 b'data: [DONE]'
             ]
 
@@ -358,16 +344,14 @@ class TestGPT(unittest.TestCase):
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -391,8 +375,8 @@ class TestGPT(unittest.TestCase):
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
                 b'''\
-data: {"choices": [{"delta": {"content": "Goodbye\\n"}}]}
-data: {"choices": [{"delta": {"content": "Goodbye2"}}]}
+data: {"type": "response.output_text.delta", "delta": "Goodbye\\n"}
+data: {"type": "response.output_text.delta", "delta": "Goodbye2"}
 ''',
                 b'data: [DONE]'
             ]
@@ -405,16 +389,14 @@ data: {"choices": [{"delta": {"content": "Goodbye2"}}]}
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -438,8 +420,8 @@ data: {"choices": [{"delta": {"content": "Goodbye2"}}]}
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
                 b'''
-data: {"choices": [{"delta":
-data:  {"content": "Goodbye"}}]}
+data: {"type": "response.output_text.delta",
+data:  "delta": "Goodbye"}
 ''',
                 b'data: [DONE]'
             ]
@@ -452,16 +434,14 @@ data:  {"content": "Goodbye"}}]}
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -485,7 +465,7 @@ data:  {"content": "Goodbye"}}]}
             mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
-                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye"}',
                 b'data: [DONE]'
             ]
 
@@ -497,16 +477,14 @@ data:  {"content": "Goodbye"}}]}
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -530,7 +508,7 @@ data:  {"content": "Goodbye"}}]}
             mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
-                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye"}',
                 b'data: [DONE]'
             ]
 
@@ -547,16 +525,14 @@ data:  {"content": "Goodbye"}}]}
 
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -591,16 +567,14 @@ data:  {"content": "Goodbye"}}]}
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -634,16 +608,14 @@ data:  {"content": "Goodbye"}}]}
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -678,16 +650,14 @@ data:  {"content": "Goodbye"}}]}
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -724,16 +694,14 @@ data:  {"content": "Goodbye"}}]}
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -767,16 +735,14 @@ data:  {"content": "Goodbye"}}]}
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,
@@ -799,7 +765,7 @@ data:  {"content": "Goodbye"}}]}
             mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
             mock_gpt_response.status = 200
             mock_gpt_response.read_chunked.return_value = [
-                b'data: {"choices": [{"delta": {"content": "Hello"}}]}',
+                b'data: {"type": "response.output_text.delta", "delta": "Hello"}',
                 b'data: {"error": {"message": "Rate limit exceeded", "type": "rate_limit_error"}}',
                 b'data: [DONE]'
             ]
@@ -814,16 +780,14 @@ data:  {"content": "Goodbye"}}]}
         self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
-            url='https://api.openai.com/v1/chat/completions',
+            url='https://api.openai.com/v1/responses',
             headers={
                 'Authorization': 'Bearer XXXX',
                 'Content-Type': 'application/json'
             },
             json={
                 'model': 'model-name',
-                'messages': [
-                    {'role': 'user', 'content': 'Hello'}
-                ],
+                'input': 'Hello',
                 'stream': True
             },
             preload_content=False,

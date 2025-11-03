@@ -2,7 +2,7 @@
 # https://github.com/craigahobbs/ctxkit/blob/main/LICENSE
 
 """
-OpenAI GPT API utilities
+OpenAI GPT API utilities (Responses API)
 """
 
 import itertools
@@ -17,7 +17,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 
 # API endpoint
-OPENAI_URL = 'https://api.openai.com/v1/chat/completions'
+OPENAI_URL = 'https://api.openai.com/v1/responses'
 OPENAI_MODELS_URL = 'https://api.openai.com/v1/models'
 
 
@@ -39,28 +39,26 @@ def _format_openai_error(base_message, error_data=None):
     return error_message
 
 
-# Call the OpenAI API and yield the response chunk strings
+# Call the OpenAI Responses API and yield the response chunk strings
 def gpt_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_p=None, max_tokens=None):
     # No API key?
     if not OPENAI_API_KEY:
         raise urllib3.exceptions.HTTPError('OPENAI_API_KEY environment variable not set')
 
     # Make POST request with streaming
-    messages = []
-    if system_prompt:
-        messages.append({'role': 'system', 'content': system_prompt})
-    messages.append({'role': 'user', 'content': prompt})
     gpt_json = {
         'model': model,
-        'messages': messages,
+        'input': prompt,
         'stream': True
     }
+    if system_prompt:
+        gpt_json['instructions'] = system_prompt
     if temperature is not None:
         gpt_json['temperature'] = temperature
     if top_p is not None:
         gpt_json['top_p'] = top_p
     if max_tokens is not None:
-        gpt_json['max_tokens'] = max_tokens
+        gpt_json['max_output_tokens'] = max_tokens
     response = pool_manager.request(
         method='POST',
         url=OPENAI_URL,
@@ -99,23 +97,23 @@ def gpt_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_p
 
             # Parse the chunk
             try:
-                chunk = json.loads(data)
+                event = json.loads(data)
             except json.JSONDecodeError:
                 # If JSON parsing fails, save as prefix for next iteration
                 data_prefix = data
                 continue
 
             # Check for errors in the stream
-            if 'error' in chunk:
-                error_message = _format_openai_error('OpenAI API streaming error', chunk)
+            if 'error' in event:
+                error_message = _format_openai_error('OpenAI API streaming error', event)
                 raise urllib3.exceptions.HTTPError(error_message)
 
-            # Yield the chunk content
-            choices = chunk.get('choices', [])
-            if choices:
-                content = choices[0].get('delta', {}).get('content')
-                if content:
-                    yield content
+            # Yield output text deltas
+            # Expect event like: {"type": "response.output_text.delta", "delta": "text..."}
+            if event.get('type') == 'response.output_text.delta':
+                delta_text = event.get('delta')
+                if delta_text:
+                    yield delta_text
 
     finally:
         response.close()
