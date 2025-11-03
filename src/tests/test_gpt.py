@@ -16,9 +16,8 @@ from .test_main import create_test_files
 class TestGPT(unittest.TestCase):
 
     def test_gpt(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -58,9 +57,8 @@ class TestGPT(unittest.TestCase):
 
 
     def test_gpt_system(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -104,9 +102,8 @@ class TestGPT(unittest.TestCase):
         with create_test_files([
                  ('test.txt', 'test text')
              ]) as temp_dir, \
-             unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
             test_path = os.path.join(temp_dir, 'test.txt')
@@ -151,9 +148,8 @@ class TestGPT(unittest.TestCase):
 
 
     def test_gpt_temperature(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -194,9 +190,8 @@ class TestGPT(unittest.TestCase):
 
 
     def test_gpt_top_p(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -237,9 +232,8 @@ class TestGPT(unittest.TestCase):
 
 
     def test_gpt_max_tokens(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -280,9 +274,8 @@ class TestGPT(unittest.TestCase):
 
 
     def test_gpt_empty(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -319,9 +312,8 @@ class TestGPT(unittest.TestCase):
 
 
     def test_gpt_no_delta(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -364,9 +356,8 @@ class TestGPT(unittest.TestCase):
 
 
     def test_gpt_multiline(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -409,9 +400,8 @@ data: {"type": "response.output_text.delta", "delta": "Goodbye2"}
 
 
     def test_gpt_split_chunk(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -454,10 +444,9 @@ data:  "delta": "Goodbye"}
 
 
     def test_gpt_stdin(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -497,10 +486,9 @@ data:  "delta": "Goodbye"}
 
 
     def test_gpt_stdin_output(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -545,10 +533,9 @@ data:  "delta": "Goodbye"}
 
 
     def test_gpt_stdin_error(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch('sys.stdin', io.StringIO('Hello')) as stdout, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -587,9 +574,8 @@ data:  "delta": "Goodbye"}
 
 
     def test_gpt_error(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -628,9 +614,8 @@ data:  "delta": "Goodbye"}
 
 
     def test_gpt_error_with_json_message(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -673,9 +658,8 @@ data:  "delta": "Goodbye"}
 
 
     def test_gpt_error_with_code_only(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -714,9 +698,8 @@ data:  "delta": "Goodbye"}
 
 
     def test_gpt_error_with_string_error(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -755,9 +738,8 @@ data:  "delta": "Goodbye"}
 
 
     def test_gpt_streaming_error(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -800,9 +782,8 @@ data:  "delta": "Goodbye"}
 
 
     def test_gpt_no_api_key(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', None), \
-             unittest.mock.patch('urllib3.PoolManager'), \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -815,9 +796,8 @@ data:  "delta": "Goodbye"}
 
 
     def test_gpt_list(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -860,9 +840,8 @@ gpt-4-turbo-preview
 
 
     def test_gpt_list_error(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -895,9 +874,8 @@ gpt-4-turbo-preview
 
 
     def test_gpt_list_error_with_json(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', 'XXXX'), \
-             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 
@@ -934,9 +912,8 @@ gpt-4-turbo-preview
 
 
     def test_gpt_list_no_api_key(self):
-        with unittest.mock.patch('ctxkit.gpt.OPENAI_API_KEY', None), \
-             unittest.mock.patch('urllib3.PoolManager'), \
-             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch('os.environ', {}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
 

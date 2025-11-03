@@ -12,8 +12,12 @@ import os
 import urllib3
 
 
-# Load environment variables
-XAI_API_KEY = os.getenv('XAI_API_KEY')
+# Get the xAI API key
+def get_api_key():
+    api_key = os.getenv('XAI_API_KEY')
+    if api_key is None:
+        raise urllib3.exceptions.HTTPError('XAI_API_KEY environment variable not set')
+    return api_key
 
 
 # API endpoint
@@ -41,11 +45,8 @@ def _format_xai_error(base_message, error_data=None):
 
 # Call the xAI API and yield the response chunk strings
 def grok_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_p=None, max_tokens=None):
-    # No API key?
-    if XAI_API_KEY is None:
-        raise urllib3.exceptions.HTTPError('XAI_API_KEY environment variable not set')
-
     # Make POST request with streaming
+    api_key = get_api_key()
     messages = []
     if system_prompt:
         messages.append({'role': 'system', 'content': system_prompt})
@@ -65,7 +66,7 @@ def grok_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_
         method='POST',
         url=XAI_URL,
         headers={
-            'Authorization': f'Bearer {XAI_API_KEY}',
+            'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json',
             'Accept': 'text/event-stream'
         },
@@ -122,15 +123,12 @@ def grok_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_
 
 # List available Grok models
 def grok_list(pool_manager):
-    # No API key?
-    if XAI_API_KEY is None:
-        raise urllib3.exceptions.HTTPError('XAI_API_KEY environment variable not set')
-
+    api_key = get_api_key()
     response = pool_manager.request(
         method='GET',
         url=XAI_MODELS_URL,
         headers={
-            'Authorization': f'Bearer {XAI_API_KEY}',
+            'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json'
         },
         retries=0

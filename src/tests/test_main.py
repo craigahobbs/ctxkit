@@ -235,7 +235,7 @@ test text
         with create_test_files([
                  ('file.txt', 'File #0')
              ]) as temp_dir, \
-             unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
+             unittest.mock.patch('ctxkit.grok.get_api_key', return_value='XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
@@ -316,7 +316,7 @@ Hello
         with create_test_files([
                  ('file.txt', 'File #0')
              ]) as temp_dir, \
-             unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
+             unittest.mock.patch('ctxkit.grok.get_api_key', return_value='XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
@@ -390,7 +390,7 @@ File
         with create_test_files([
                  ('file.txt', 'Test')
              ]) as temp_dir, \
-             unittest.mock.patch('ctxkit.grok.XAI_API_KEY', 'XXXX'), \
+             unittest.mock.patch('ctxkit.grok.get_api_key', return_value='XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \

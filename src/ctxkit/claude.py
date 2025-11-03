@@ -12,8 +12,12 @@ import os
 import urllib3
 
 
-# Load environment variables
-ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
+# Get the Anthropic API key
+def get_api_key():
+    api_key = os.getenv('ANTHROPIC_API_KEY')
+    if api_key is None:
+        raise urllib3.exceptions.HTTPError('ANTHROPIC_API_KEY environment variable not set')
+    return api_key
 
 
 # API endpoint
@@ -27,11 +31,8 @@ ANTHROPIC_MAX_TOKENS = 8000
 
 # Call the Claude API and yield the response chunk strings
 def claude_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_p=None, max_tokens=None):
-    # No API key?
-    if ANTHROPIC_API_KEY is None:
-        raise urllib3.exceptions.HTTPError('ANTHROPIC_API_KEY environment variable not set')
-
     # Make POST request with streaming
+    api_key = get_api_key()
     messages = [{'role': 'user', 'content': prompt}]
     claude_json = {
         'model': model,
@@ -49,7 +50,7 @@ def claude_chat(pool_manager, model, system_prompt, prompt, temperature=None, to
         method='POST',
         url=ANTHROPIC_URL,
         headers={
-            'x-api-key': ANTHROPIC_API_KEY,
+            'x-api-key': api_key,
             'anthropic-version': '2023-06-01',
             'Content-Type': 'application/json'
         },
@@ -101,15 +102,12 @@ def claude_chat(pool_manager, model, system_prompt, prompt, temperature=None, to
 
 # List available Claude models
 def claude_list(pool_manager):
-    # No API key?
-    if ANTHROPIC_API_KEY is None:
-        raise urllib3.exceptions.HTTPError('ANTHROPIC_API_KEY environment variable not set')
-
+    api_key = get_api_key()
     response = pool_manager.request(
         method='GET',
         url=ANTHROPIC_MODELS_URL,
         headers={
-            'x-api-key': ANTHROPIC_API_KEY,
+            'x-api-key': api_key,
             'anthropic-version': '2023-06-01',
             'Content-Type': 'application/json'
         },

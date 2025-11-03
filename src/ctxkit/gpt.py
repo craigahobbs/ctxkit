@@ -12,8 +12,12 @@ import os
 import urllib3
 
 
-# Load environment variables
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+# Get the OpenAI API key
+def get_api_key():
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        raise urllib3.exceptions.HTTPError('OPENAI_API_KEY environment variable not set')
+    return api_key
 
 
 # API endpoint
@@ -41,11 +45,8 @@ def _format_openai_error(base_message, error_data=None):
 
 # Call the OpenAI Responses API and yield the response chunk strings
 def gpt_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_p=None, max_tokens=None):
-    # No API key?
-    if not OPENAI_API_KEY:
-        raise urllib3.exceptions.HTTPError('OPENAI_API_KEY environment variable not set')
-
     # Make POST request with streaming
+    api_key = get_api_key()
     gpt_json = {
         'model': model,
         'input': prompt,
@@ -63,7 +64,7 @@ def gpt_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_p
         method='POST',
         url=OPENAI_URL,
         headers={
-            'Authorization': f'Bearer {OPENAI_API_KEY}',
+            'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json'
         },
         json=gpt_json,
@@ -121,15 +122,12 @@ def gpt_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_p
 
 # List available GPT models
 def gpt_list(pool_manager):
-    # No API key?
-    if not OPENAI_API_KEY:
-        raise urllib3.exceptions.HTTPError('OPENAI_API_KEY environment variable not set')
-
+    api_key = get_api_key()
     response = pool_manager.request(
         method='GET',
         url=OPENAI_MODELS_URL,
         headers={
-            'Authorization': f'Bearer {OPENAI_API_KEY}',
+            'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json'
         },
         retries=0
