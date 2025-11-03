@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.2 (2025-11-03)
+
+- [36238e4](https://github.com/craigahobbs/ctxkit/commit/36238e4) - improve API key handling
+
+- [675280d](https://github.com/craigahobbs/ctxkit/commit/675280d) - improve grok api integration
+
+- [99d5de3](https://github.com/craigahobbs/ctxkit/commit/99d5de3) - use OpenAI Responses API \(for gpt-5-codex\)
+
 ## 2.0.1 (2025-10-09)
 
 - [13a0663](https://github.com/craigahobbs/ctxkit/commit/13a0663) - improved OpenAI API error handling
