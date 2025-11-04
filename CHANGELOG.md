@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0 (2025-11-03)
+
+- [cd4d34c](https://github.com/craigahobbs/ctxkit/commit/cd4d34c) - add gemini api support
+
 ## 2.0.2 (2025-11-03)
 
 - [36238e4](https://github.com/craigahobbs/ctxkit/commit/36238e4) - improve API key handling
