@@ -17,6 +17,7 @@ import schema_markdown
 import urllib3
 
 from .claude import claude_chat, claude_list
+from .gemini import gemini_chat, gemini_list
 from .gpt import gpt_chat, gpt_list
 from .grok import grok_chat, grok_list
 from .ollama import ollama_chat, ollama_list
@@ -187,6 +188,11 @@ API_PROVIDERS = {
         'chat': claude_chat,
         'list': claude_list
         },
+    'gemini': {
+        'description': 'Gemini (Google) API',
+        'chat': gemini_chat,
+        'list': gemini_list
+    },
     'gpt': {
         'description': 'ChatGPT (OpenAI) API',
         'chat': gpt_chat,

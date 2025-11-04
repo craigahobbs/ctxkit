@@ -54,6 +54,13 @@ export ANTHROPIC_API_KEY=<key>
 ctxkit -m 'Hello!' --api claude claude-3-5-haiku-latest
 ```
 
+`gemini` - [Gemini (Google) API](https://aistudio.google.com/apikey)
+
+```sh
+export GOOGLE_API_KEY=<key>
+ctxkit -m 'Hello!' --api gemini gemini-2.0-flash-exp
+```
+
 `gpt` - [ChatGPT (OpenAI) API](https://platform.openai.com/docs/api-reference/chat)
 
 ```sh
@@ -252,6 +259,7 @@ API Calling:
 
 API Providers:
   claude - Claude (Anthropic) API
+  gemini - Gemini (Google) API
   gpt    - ChatGPT (OpenAI) API
   grok   - Grok (xAI) API
   ollama - Ollama API
