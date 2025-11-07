@@ -10,7 +10,7 @@ APP ?= app
 
 # The model to use
 MODEL ?= --api \
-  $(if $(SMARTER), claude claude-opus-4-1, \
+  $(if $(SMARTER), claude claude-sonnet-4-5, \
   $(if $(SMART), grok grok-code-fast, \
   grok grok-4-fast-reasoning))
 
@@ -63,20 +63,13 @@ lint: build/venv.build
 
 .phony: lint-inner
 lint-inner: build/venv.build
-	@echo 'Compiling $(APP)/$(APP).bare ...'
-	@if ! build/venv/bin/bare -d -m $(APP)/*.bare > build/compile.txt; then \
-		echo 'Compile FAILED! Fixing...'; \
-		build/venv/bin/ctxkit $(CTXKIT_ARGS) $(CTXKIT_APP) -f build/compile.txt -m 'Please fix the BareScrdipt execution issues.'; \
+	@echo 'Linting $(APP)/*.bare ...'
+	if ! build/venv/bin/bare -d -m -x $(APP)/*.bare > build/lint.txt; then \
+		echo 'Lint FAILED! Fixing...'; \
+		build/venv/bin/ctxkit $(CTXKIT_ARGS) $(CTXKIT_APP) -f build/lint.txt -m 'Please fix the static analysis issues.'; \
 		false; \
 	else \
-		echo 'Linting $(APP)/*.bare ...'; \
-		if ! build/venv/bin/bare -x $(APP)/*.bare > build/lint.txt; then \
-			echo 'Lint FAILED! Fixing...'; \
-			build/venv/bin/ctxkit $(CTXKIT_ARGS) $(CTXKIT_APP) -f build/lint.txt -m 'Please fix the static analysis issues.'; \
-			false; \
-		else \
-			echo 'Success!'; \
-		fi; \
+		echo 'Success!'; \
 	fi
 
 

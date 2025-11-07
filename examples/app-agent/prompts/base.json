@@ -29,13 +29,7 @@
             "",
             "Here is the MarkdownUp library documentation:"
         ]},
-        {"file": "https://craigahobbs.github.io/markdown-up/library/markdownup-library.md"},
-        {"long": [
-            "==========",
-            "",
-            "Here is the MarkdownUp include library documentation:"
-        ]},
-        {"file": "https://craigahobbs.github.io/markdown-up/library/markdownup-include-library.md"},
+        {"file": "https://craigahobbs.github.io/bare-script/library/barescript-library.md"},
         {"long": [
             "==========",
             "",
