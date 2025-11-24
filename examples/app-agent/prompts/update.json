@@ -1,6 +1,6 @@
 {
     "items": [
-        {"config": "base.json"},
+        {"config": "barescript.json"},
         {"long": [
             "==========",
             "",

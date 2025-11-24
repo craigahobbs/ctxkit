@@ -22,17 +22,17 @@ Here are a few tips for generating BareScript code:
    well. For example:
 
    ```barescript
-   function myAppCopyText(text):
+   async function myAppCopyText(text):
        windowClipboardWrite(text)
    endfunction
    ```
 
-3. There are no inline function definitions in BareScript. All functions must be defined in the
-   global scope. For example:
+3. There are no inline function definitions (e.g. `fn = lambda x: x + 1`). in BareScript. All functions
+   must be defined in the global scope. For example:
 
    ```barescript
-   function myAppMessage(name):
-       return 'Hello, ' + name + '!'
+   function myIncrement(x):
+       return x + 1
    endfunction
    ```
 

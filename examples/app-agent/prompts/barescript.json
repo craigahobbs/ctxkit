@@ -27,9 +27,15 @@
         {"long": [
             "==========",
             "",
-            "Here is the MarkdownUp library documentation:"
+            "Here is the BareScript library documentation:"
         ]},
         {"file": "https://craigahobbs.github.io/bare-script/library/barescript-library.md"},
+        {"long": [
+            "==========",
+            "",
+            "Here is the BareScript library model documentation:"
+        ]},
+        {"file": "https://craigahobbs.github.io/bare-script/library/barescript-library-model.md"},
         {"long": [
             "==========",
             "",
