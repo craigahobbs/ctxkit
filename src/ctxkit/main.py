@@ -40,7 +40,7 @@ def main(argv=None):
     api_doc = '\n'.join(api_doc_lines)
 
     # Command line arguments
-    parser = argparse.ArgumentParser(prog='ctxkit')
+    parser = argparse.ArgumentParser(prog='ctxkit', color=False)
     parser.add_argument('-g', '--config-help', action='store_true', help='display the JSON configuration file format')
     output_group = parser.add_argument_group('Output Options')
     output_group.add_argument('-e', '--extract', action='store_true', help='extract response files')
