@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.1 (2025-12-01)
+
+- [d6dd52e](https://github.com/craigahobbs/ctxkit/commit/d6dd52e) - ArgumentParser color=False
+
 ## 2.1.0 (2025-11-03)
 
 - [cd4d34c](https://github.com/craigahobbs/ctxkit/commit/cd4d34c) - add gemini api support
