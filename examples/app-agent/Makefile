@@ -22,7 +22,7 @@ CTXKIT_APP := -d $(APP)/ -x bare -x json -x md
 
 .phony: help
 help:
-	@echo 'usage: make [help|clean|superclean|create|improve|revert|review|run|update]'
+	@echo 'usage: make [help|clean|superclean|create|improve|lint|revert|review|run|update]'
 
 
 .phony: clean
