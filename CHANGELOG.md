@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.0 (2026-05-06)
+
+- [2e15731](https://github.com/craigahobbs/ctxkit/commit/2e15731) - add --diff argument
+
 ## 2.1.1 (2025-12-01)
 
 - [d6dd52e](https://github.com/craigahobbs/ctxkit/commit/d6dd52e) - ArgumentParser color=False
