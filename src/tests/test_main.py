@@ -12,7 +12,7 @@ import unittest.mock
 import urllib3
 
 import ctxkit.__main__
-from ctxkit.main import API_PROVIDERS, DEFAULT_SYSTEM, main
+from ctxkit.main import API_PROVIDERS, DEFAULT_SYSTEM, DEFAULT_SYSTEM_DIFF, main
 
 
 # Helper context manager to create a list of files in a temporary directory
@@ -82,6 +82,22 @@ class TestMain(unittest.TestCase):
 Hello
 
 Goodbye
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_system_default_diff(self):
+        with unittest.mock.patch('urllib3.PoolManager'), \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            main(['-m', 'Hello', '--diff'])
+        self.assertEqual(stdout.getvalue(), f'''\
+<system>
+{DEFAULT_SYSTEM_DIFF}
+</system>
+
+Hello
 ''')
         self.assertEqual(stderr.getvalue(), '')
 
@@ -448,6 +464,91 @@ ctxkit: delete
             retries=0
         )
         mock_grok_response.close.assert_called_once()
+
+        self.assertEqual(stdout.getvalue(), f'{response}\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_extract_diff(self):
+        with create_test_files([
+                 ('file.txt', 'line one\nline two\nline three\n')
+             ]) as temp_dir, \
+             unittest.mock.patch('ctxkit.grok.get_api_key', return_value='XXXX'), \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            file_path = os.path.join(temp_dir, 'file.txt')
+            response = f'''\
+<{file_path}>
+--- a/{file_path}
++++ b/{file_path}
+@@ -1,3 +1,3 @@
+ line one
+-line two
++line TWO
+ line three
+</{file_path}>
+'''
+
+            # Create a mock Response object for the HTTP response
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content": ' + json.dumps(response).encode('utf-8') + b'}}]}',
+                b'data: [DONE]'
+            ]
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '--extract', '--diff', '-s', ''])
+
+            with open(file_path, 'r', encoding='utf-8') as file_:
+                file_text = file_.read()
+            self.assertEqual(file_text, 'line one\nline TWO\nline three\n')
+
+        self.assertEqual(stdout.getvalue(), f'{response}\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_extract_diff_new_file(self):
+        with create_test_files([]) as temp_dir, \
+             unittest.mock.patch('ctxkit.grok.get_api_key', return_value='XXXX'), \
+             unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            file_path = os.path.join(temp_dir, 'newfile.txt')
+            response = f'''\
+<{file_path}>
+--- /dev/null
++++ b/{file_path}
+@@ -0,0 +1,3 @@
++line one
++line two
++line three
+</{file_path}>
+'''
+
+            # Create a mock Response object for the HTTP response
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content": ' + json.dumps(response).encode('utf-8') + b'}}]}',
+                b'data: [DONE]'
+            ]
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '--extract', '--diff', '-s', ''])
+
+            with open(file_path, 'r', encoding='utf-8') as file_:
+                file_text = file_.read()
+            self.assertEqual(file_text, 'line one\nline two\nline three\n')
 
         self.assertEqual(stdout.getvalue(), f'{response}\n')
         self.assertEqual(stderr.getvalue(), '')
@@ -840,6 +941,28 @@ Hello2!
         self.assertEqual(stderr.getvalue(), '')
 
 
+    def test_file_diff(self):
+        with create_test_files([
+            ('test.txt', 'line one\nline two'),
+        ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            file_path = os.path.join(temp_dir, 'test.txt')
+            main(['-f', file_path, '--diff'])
+        self.assertEqual(stdout.getvalue(), f'''\
+<system>
+{DEFAULT_SYSTEM_DIFF}
+</system>
+
+<{file_path}>
+1:line one
+2:line two
+</{file_path}>
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
     def test_file_url(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
@@ -965,6 +1088,28 @@ Hello!
 <{sub_path}>
 Goodbye!
 </{sub_path}>
+''')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_dir_diff(self):
+        with create_test_files([
+            ('test.txt', 'line one\nline two'),
+        ]) as temp_dir, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+            file_path = os.path.join(temp_dir, 'test.txt')
+            main(['-d', temp_dir, '-x', 'txt', '--diff'])
+        self.assertEqual(stdout.getvalue(), f'''\
+<system>
+{DEFAULT_SYSTEM_DIFF}
+</system>
+
+<{file_path}>
+1:line one
+2:line two
+</{file_path}>
 ''')
         self.assertEqual(stderr.getvalue(), '')
 

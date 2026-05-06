@@ -113,6 +113,9 @@ In this example, ctxkit passes a prompt with all of the project source and a cha
 which we expect the AI to respond with modified versions of some project files that satisfy the
 requested change. Magic!
 
+Use the `--diff` argument in conjunction with `-e` to return modified files as unified diffs. This
+can significantly speed-up file modifications.
+
 
 ## Inline Instructions
 
@@ -221,9 +224,9 @@ The `CTXKIT_FLAGS` environment variable is used to define default arguments, suc
 grok-4-fast-reasoning` to set a default model. `CTXKIT_FLAGS` is prepended to the command-line arguments.
 
 ```
-usage: ctxkit [-h] [-g] [-e] [-o PATH] [-b] [-c PATH] [-m TEXT] [-i PATH]
-              [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-s PATH] [-x EXT]
-              [-l INT] [--api API MODEL] [--list API] [--temp NUM]
+usage: ctxkit [-h] [-g] [-e] [--diff] [-o PATH] [-b] [-c PATH] [-m TEXT]
+              [-i PATH] [-t PATH] [-f PATH] [-d PATH] [-v VAR EXPR] [-s PATH]
+              [-x EXT] [-l INT] [--api API MODEL] [--list API] [--temp NUM]
               [--topp NUM] [--maxtok NUM] [--noapi]
 
 options:
@@ -232,6 +235,7 @@ options:
 
 Output Options:
   -e, --extract        extract response files
+  --diff               use unified diff format for file changes
   -o, --output PATH    output to the file path
   -b, --backup         backup output files with ".bak" extension
 
@@ -265,9 +269,9 @@ API Providers:
   ollama - Ollama API
 
 Examples:
-  ctxkit --api ollama gpt-oss:20b -m "How do I count code lines?"
-  ctxkit --api grok grok-4-fast-reasoning -f README.md -f main.py -f test_main.py -m "Add a -q argument" -e
-  ctxkit --api claude claude-opus-4-1 -f README.md -d src -x py -i spec.txt -e
+  ctxkit --api ollama qwen3.6:35b -m "How do I count code lines?"
+  ctxkit --api grok grok-4.3 -f README.md -f main.py -f test_main.py -m "Add a -q argument" -e
+  ctxkit --api claude claude-opus-4-7 -f README.md -d src -x py -i spec.txt -e
   ctxkit --list grok
 ```
 

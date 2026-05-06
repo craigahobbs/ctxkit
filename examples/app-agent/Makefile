@@ -10,8 +10,8 @@ APP ?= app
 
 # The model to use
 MODEL ?= --api \
-  $(if $(SMARTER), claude claude-opus-4-5, \
-  $(if $(SMART), claude claude-sonnet-4-5, \
+  $(if $(SMARTER), claude claude-opus-4-6, \
+  $(if $(SMART), claude claude-sonnet-4-6, \
   grok grok-code-fast))
 
 
@@ -38,7 +38,7 @@ superclean: clean
 build/venv.build:
 	mkdir -p $(dir $@)
 	python3 -m venv $(basename $@) --upgrade-deps
-	$(basename $@)/bin/pip install ctxkit markdown-up
+	$(basename $@)/bin/pip install -e ../.. markdown-up
 	touch $@
 
 
@@ -52,7 +52,7 @@ create: build/venv.build
 
 .phony: improve
 improve: build/venv.build
-	build/venv/bin/ctxkit $(CTXKIT_APP) $(CTXKIT_ARGS) \
+	build/venv/bin/ctxkit $(CTXKIT_APP) $(CTXKIT_ARGS) --diff \
 		-c prompts/improve.json
 
 
@@ -66,7 +66,7 @@ lint-inner: build/venv.build
 	@echo 'Linting $(APP)/*.bare ...'
 	if ! build/venv/bin/bare -d -m -x $(APP)/*.bare > build/lint.txt; then \
 		echo 'Lint FAILED! Fixing...'; \
-		build/venv/bin/ctxkit $(CTXKIT_ARGS) $(CTXKIT_APP) -f build/lint.txt -m 'Please fix the static analysis issues.'; \
+		build/venv/bin/ctxkit $(CTXKIT_APP) $(CTXKIT_ARGS) --diff -f build/lint.txt -m 'Please fix the static analysis issues.'; \
 		false; \
 	else \
 		echo 'Success!'; \
@@ -75,7 +75,7 @@ lint-inner: build/venv.build
 
 .phony: review
 review: build/venv.build
-	build/venv/bin/ctxkit $(CTXKIT_APP) $(CTXKIT_ARGS) \
+	build/venv/bin/ctxkit $(CTXKIT_APP) $(CTXKIT_ARGS) --diff \
 		-c prompts/review.json
 
 
@@ -86,7 +86,7 @@ run: build/venv.build
 
 .phony: update
 update: build/venv.build
-	build/venv/bin/ctxkit $(CTXKIT_APP) $(CTXKIT_ARGS) \
+	build/venv/bin/ctxkit $(CTXKIT_APP) $(CTXKIT_ARGS) --diff \
 		-c prompts/update.json \
 		-i $(UPDATE) \
 		-c prompts/update2.json
