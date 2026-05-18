@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.2 (2026-05-18)
+
+- [1eab0a7](https://github.com/craigahobbs/ctxkit/commit/1eab0a7) - add ctxkit.api package to setup.cfg
+
 ## 2.2.1 (2026-05-18)
 
 - [2ff8ffe](https://github.com/craigahobbs/ctxkit/commit/2ff8ffe) - code refactor and stability fixes
