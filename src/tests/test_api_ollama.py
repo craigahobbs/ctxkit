@@ -9,7 +9,8 @@ import unittest.mock
 
 import urllib3
 
-from ctxkit.main import DEFAULT_SYSTEM, main
+from ctxkit.api import DEFAULT_SYSTEM
+from ctxkit.main import main
 
 from .test_main import create_test_files
 

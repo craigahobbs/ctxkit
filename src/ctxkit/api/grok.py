@@ -5,11 +5,12 @@
 Grok API utilities
 """
 
-import itertools
 import json
 import os
 
 import urllib3
+
+from ._sse import iter_sse_events
 
 
 # Get the xAI API key
@@ -79,43 +80,39 @@ def grok_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_
             error_data = None
             try:
                 error_data = json.loads(response.data.decode('utf-8'))
-            except:
+            except Exception:
                 pass
             error_message = _format_xai_error(f'xAI API failed with status {response.status}', error_data)
             raise urllib3.exceptions.HTTPError(error_message)
 
         # Process the streaming response
-        data_prefix = None
-        for line in itertools.chain.from_iterable(line.decode('utf-8').splitlines() for line in response.read_chunked()):
-            # Parse the data chunk
-            if not line.startswith('data: '):
-                continue
-            data = line[6:]
-            if data == '[DONE]':
+        finish_reason = None
+        saw_done = False
+        for event in iter_sse_events(response):
+            if event == '[DONE]':
+                saw_done = True
                 break
 
-            # Combine with previous partial line
-            if data_prefix:
-                data = data_prefix + data
-                data_prefix = None
-
-            # Parse the chunk
-            try:
-                chunk = json.loads(data)
-            except json.JSONDecodeError:
-                # If JSON parsing fails, save as prefix for next iteration
-                data_prefix = data
-                continue
-
             # Check for errors in the stream
-            if 'error' in chunk:
-                error_message = _format_xai_error('xAI API streaming error', chunk)
+            if 'error' in event:
+                error_message = _format_xai_error('xAI API streaming error', event)
                 raise urllib3.exceptions.HTTPError(error_message)
 
+            # Track finish_reason for end-of-stream verification (final chunk carries it)
+            choice = event['choices'][0]
+            if choice.get('finish_reason'):
+                finish_reason = choice['finish_reason']
+
             # Yield the chunk content
-            content = chunk['choices'][0]['delta'].get('content')
+            content = choice['delta'].get('content')
             if content:
                 yield content
+
+        # Detect silent truncation: server-signalled non-stop, or dropped connection (no [DONE])
+        if finish_reason is not None and finish_reason != 'stop':
+            raise urllib3.exceptions.HTTPError(f'xAI API response truncated (finish_reason: {finish_reason})')
+        if not saw_done:
+            raise urllib3.exceptions.HTTPError('xAI API stream ended unexpectedly without [DONE] terminator')
 
     finally:
         response.close()
@@ -138,7 +135,7 @@ def grok_list(pool_manager):
             error_data = None
             try:
                 error_data = json.loads(response.data.decode('utf-8'))
-            except:
+            except Exception:
                 pass
             error_message = _format_xai_error(f'xAI API failed with status {response.status}', error_data)
             raise urllib3.exceptions.HTTPError(error_message)

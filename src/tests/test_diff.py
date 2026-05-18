@@ -310,6 +310,17 @@ preamble text
         self.assertEqual(result, '1\nTWO\n3\n')
 
 
+    def test_apply_diff_pure_deletion(self):
+        # Pure-deletion hunk (no '+' or context lines) — new_lines is empty
+        original = 'keep one\nremove me\nremove me too\nkeep two\n'
+        diff = '''\
+@@ -2,2 +2,0 @@
+-remove me
+-remove me too
+'''
+        self.assertEqual(apply_diff(original, diff), 'keep one\nkeep two\n')
+
+
     def test_apply_diff_first_line_mismatch_both_forward_closer(self):
         # First line found in both directions, backward is strictly closer (covers `return backward_idx`
         # when both backward_idx and forward_idx are not None)

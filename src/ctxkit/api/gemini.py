@@ -5,11 +5,12 @@
 Google Gemini API utilities
 """
 
-import itertools
 import json
 import os
 
 import urllib3
+
+from ._sse import iter_sse_events
 
 
 # Get the Google API key
@@ -79,46 +80,37 @@ def gemini_chat(pool_manager, model, system_prompt, prompt, temperature=None, to
             error_data = None
             try:
                 error_data = json.loads(response.data.decode('utf-8'))
-            except:
+            except Exception:
                 pass
             error_message = _format_gemini_error(f'Gemini API failed with status {response.status}', error_data)
             raise urllib3.exceptions.HTTPError(error_message)
 
-        # Process the streaming response
-        data_prefix = None
-        for line in itertools.chain.from_iterable(line.decode('utf-8').splitlines() for line in response.read_chunked()):
-            # Skip non-data lines
-            if not line.startswith('data: '):
-                continue
-            data = line[6:]
-
-            # Combine with previous partial line
-            if data_prefix:
-                data = data_prefix + data
-                data_prefix = None
-
-            # Parse the chunk
-            try:
-                chunk = json.loads(data)
-            except json.JSONDecodeError:
-                # If JSON parsing fails, save as prefix for next iteration
-                data_prefix = data
-                continue
-
+        # Process the streaming response (Gemini does not send '[DONE]')
+        finish_reason = None
+        for event in iter_sse_events(response):
             # Check for errors in the stream
-            if 'error' in chunk:
-                error_message = _format_gemini_error('Gemini API streaming error', chunk)
+            if 'error' in event:
+                error_message = _format_gemini_error('Gemini API streaming error', event)
                 raise urllib3.exceptions.HTTPError(error_message)
 
-            # Yield the chunk content
-            candidates = chunk.get('candidates', [])
+            # Yield the chunk content; the final chunk also carries finishReason
+            candidates = event.get('candidates', [])
             if candidates:
-                content = candidates[0].get('content', {})
+                candidate = candidates[0]
+                if candidate.get('finishReason'):
+                    finish_reason = candidate['finishReason']
+                content = candidate.get('content', {})
                 parts = content.get('parts', [])
                 for part in parts:
                     text = part.get('text')
                     if text:
                         yield text
+
+        # Detect silent truncation: bad finishReason, or dropped connection (no finishReason ever set)
+        if finish_reason is not None and finish_reason != 'STOP':
+            raise urllib3.exceptions.HTTPError(f'Gemini API response truncated (finishReason: {finish_reason})')
+        if finish_reason is None:
+            raise urllib3.exceptions.HTTPError('Gemini API stream ended unexpectedly without finishReason')
 
     finally:
         response.close()
@@ -140,7 +132,7 @@ def gemini_list(pool_manager):
             error_data = None
             try:
                 error_data = json.loads(response.data.decode('utf-8'))
-            except:
+            except Exception:
                 pass
             error_message = _format_gemini_error(f'Gemini API failed with status {response.status}', error_data)
             raise urllib3.exceptions.HTTPError(error_message)

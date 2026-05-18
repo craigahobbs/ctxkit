@@ -5,11 +5,11 @@
 Claude API utilities
 """
 
-import itertools
-import json
 import os
 
 import urllib3
+
+from ._sse import iter_sse_events
 
 
 # Get the Anthropic API key
@@ -63,38 +63,42 @@ def claude_chat(pool_manager, model, system_prompt, prompt, temperature=None, to
             raise urllib3.exceptions.HTTPError(f'Claude API failed with status {response.status}')
 
         # Process the streaming response
-        data_prefix = None
-        for line in itertools.chain.from_iterable(line.decode('utf-8').splitlines() for line in response.read_chunked()):
-            # Skip non-data lines
-            if not line.startswith('data: '):
-                continue
-            data = line[6:]
-            if data == '[DONE]':
+        stop_reason = None
+        saw_terminator = False
+        for event in iter_sse_events(response):
+            if event == '[DONE]':
+                saw_terminator = True
                 break
 
-            # Combine with previous partial line
-            if data_prefix:
-                data = data_prefix + data
-                data_prefix = None
-
-            # Parse the event data
-            try:
-                event = json.loads(data)
-            except json.JSONDecodeError:
-                # If JSON parsing fails, save as prefix for next iteration
-                data_prefix = data
-                continue
-
             # Check for API errors in the event
-            if event.get('type') == 'error':
+            event_type = event.get('type')
+            if event_type == 'error':
                 error_message = event.get('error', {}).get('message', 'Unknown API error')
                 raise urllib3.exceptions.HTTPError(f'Claude API error: {error_message}')
 
+            # Track stop_reason from message_delta event (carries final stop_reason)
+            if event_type == 'message_delta':
+                new_stop_reason = event.get('delta', {}).get('stop_reason')
+                if new_stop_reason:
+                    stop_reason = new_stop_reason
+
+            # message_stop event is the real Anthropic terminator
+            if event_type == 'message_stop':
+                saw_terminator = True
+                break
+
             # Yield content from content_block_delta
-            if event.get('type') == 'content_block_delta' and 'delta' in event:
+            if event_type == 'content_block_delta' and 'delta' in event:
                 delta = event['delta']
                 if 'text' in delta:
                     yield delta['text']
+
+        # Detect silent truncation: bad stop_reason, or dropped connection without
+        # any completion signal. A known-good stop_reason is itself a clean terminator.
+        if stop_reason is not None and stop_reason not in ('end_turn', 'stop_sequence'):
+            raise urllib3.exceptions.HTTPError(f'Claude API response truncated (stop_reason: {stop_reason})')
+        if stop_reason is None and not saw_terminator:
+            raise urllib3.exceptions.HTTPError('Claude API stream ended unexpectedly without terminator')
 
     finally:
         response.close()

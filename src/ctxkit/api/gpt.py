@@ -5,11 +5,12 @@
 OpenAI GPT API utilities (Responses API)
 """
 
-import itertools
 import json
 import os
 
 import urllib3
+
+from ._sse import iter_sse_events
 
 
 # Get the OpenAI API key
@@ -76,45 +77,46 @@ def gpt_chat(pool_manager, model, system_prompt, prompt, temperature=None, top_p
             error_data = None
             try:
                 error_data = json.loads(response.data.decode('utf-8'))
-            except:
+            except Exception:
                 pass
             error_message = _format_openai_error(f'OpenAI API failed with status {response.status}', error_data)
             raise urllib3.exceptions.HTTPError(error_message)
 
         # Process the streaming response
-        data_prefix = None
-        for line in itertools.chain.from_iterable(line.decode('utf-8').splitlines() for line in (response.read_chunked() or [])):
-            # Skip non-data lines
-            if not line.startswith('data: '):
-                continue
-            data = line[6:]
-            if data == '[DONE]':
+        saw_terminator = False
+        for event in iter_sse_events(response):
+            if event == '[DONE]':
+                saw_terminator = True
                 break
-
-            # Combine with previous partial line
-            if data_prefix:
-                data = data_prefix + data
-                data_prefix = None
-
-            # Parse the chunk
-            try:
-                event = json.loads(data)
-            except json.JSONDecodeError:
-                # If JSON parsing fails, save as prefix for next iteration
-                data_prefix = data
-                continue
 
             # Check for errors in the stream
             if 'error' in event:
                 error_message = _format_openai_error('OpenAI API streaming error', event)
                 raise urllib3.exceptions.HTTPError(error_message)
 
+            event_type = event.get('type')
+
+            # response.failed/incomplete signal truncation; response.completed is the clean terminator
+            if event_type == 'response.failed':
+                reason = event.get('response', {}).get('error', {}).get('message', 'unknown error')
+                raise urllib3.exceptions.HTTPError(f'OpenAI API response failed: {reason}')
+            if event_type == 'response.incomplete':
+                reason = event.get('response', {}).get('incomplete_details', {}).get('reason', 'unknown')
+                raise urllib3.exceptions.HTTPError(f'OpenAI API response truncated (reason: {reason})')
+            if event_type == 'response.completed':
+                saw_terminator = True
+                break
+
             # Yield output text deltas
             # Expect event like: {"type": "response.output_text.delta", "delta": "text..."}
-            if event.get('type') == 'response.output_text.delta':
+            if event_type == 'response.output_text.delta':
                 delta_text = event.get('delta')
                 if delta_text:
                     yield delta_text
+
+        # Detect silent truncation: dropped connection (no terminator)
+        if not saw_terminator:
+            raise urllib3.exceptions.HTTPError('OpenAI API stream ended unexpectedly without terminator')
 
     finally:
         response.close()
@@ -137,7 +139,7 @@ def gpt_list(pool_manager):
             error_data = None
             try:
                 error_data = json.loads(response.data.decode('utf-8'))
-            except:
+            except Exception:
                 pass
             error_message = _format_openai_error(f'OpenAI API failed with status {response.status}', error_data)
             raise urllib3.exceptions.HTTPError(error_message)

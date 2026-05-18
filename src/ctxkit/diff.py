@@ -16,6 +16,12 @@ def apply_diff(original_text, diff_text):
     for old_start, old_count, new_lines in reversed(list(parse_unified_diff(diff_text))):
         # Adjust start as necessary
         start_idx = max(old_start - 1, 0)
+
+        # Pure-deletion hunk: splice the deleted range with nothing
+        if not new_lines:
+            result_lines[start_idx:start_idx + old_count] = []
+            continue
+
         if result_lines and result_lines[start_idx] != new_lines[0]:
             start_idx = _find_line(result_lines, new_lines[0], start_idx, 5)
 

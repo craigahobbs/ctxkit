@@ -8,7 +8,8 @@ import unittest.mock
 
 import urllib3
 
-from ctxkit.main import DEFAULT_SYSTEM, main
+from ctxkit.api import DEFAULT_SYSTEM
+from ctxkit.main import main
 
 from .test_main import create_test_files
 
@@ -274,6 +275,7 @@ class TestGPT(unittest.TestCase):
 
 
     def test_gpt_empty(self):
+        # An empty stream (no terminator, no content) is treated as an incomplete response
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
@@ -288,8 +290,10 @@ class TestGPT(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gpt_response
 
-            main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
 
+        self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
             url='https://api.openai.com/v1/responses',
@@ -308,7 +312,108 @@ class TestGPT(unittest.TestCase):
         mock_gpt_response.close.assert_called_once()
 
         self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '\nError: OpenAI API stream ended unexpectedly without terminator\n')
+
+
+    def test_gpt_response_completed_terminator(self):
+        # Real OpenAI Responses API terminator is response.completed event
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_gpt_response.status = 200
+            mock_gpt_response.read_chunked.return_value = [
+                b'data: {"type": "response.output_text.delta", "delta": "Goodbye"}',
+                b'data: {"type": "response.completed"}'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_gpt_response
+
+            main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
+
+        mock_gpt_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'Goodbye\n')
         self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_gpt_response_incomplete(self):
+        # response.incomplete with reason indicates truncation
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_gpt_response.status = 200
+            mock_gpt_response.read_chunked.return_value = [
+                b'data: {"type": "response.output_text.delta", "delta": "partial"}',
+                b'data: {"type": "response.incomplete", "response": {"incomplete_details": {"reason": "max_output_tokens"}}}'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_gpt_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_gpt_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'partial')
+        self.assertEqual(stderr.getvalue(), '\nError: OpenAI API response truncated (reason: max_output_tokens)\n')
+
+
+    def test_gpt_response_failed(self):
+        # response.failed event raises with the server-supplied error message
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_gpt_response.status = 200
+            mock_gpt_response.read_chunked.return_value = [
+                b'data: {"type": "response.output_text.delta", "delta": "partial"}',
+                b'data: {"type": "response.failed", "response": {"error": {"message": "model overloaded"}}}'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_gpt_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_gpt_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'partial')
+        self.assertEqual(stderr.getvalue(), '\nError: OpenAI API response failed: model overloaded\n')
+
+
+    def test_gpt_no_terminator_with_content(self):
+        # Connection drops mid-stream: content arrives but no terminator
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'OPENAI_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_gpt_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_gpt_response.status = 200
+            mock_gpt_response.read_chunked.return_value = [
+                b'data: {"type": "response.output_text.delta", "delta": "partial"}'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_gpt_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'gpt', 'model-name', '-s', ''])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_gpt_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'partial')
+        self.assertEqual(stderr.getvalue(), '\nError: OpenAI API stream ended unexpectedly without terminator\n')
 
 
     def test_gpt_no_delta(self):

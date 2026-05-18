@@ -8,7 +8,8 @@ import unittest.mock
 
 import urllib3
 
-from ctxkit.main import DEFAULT_SYSTEM, main
+from ctxkit.api import DEFAULT_SYSTEM
+from ctxkit.main import main
 
 from .test_main import create_test_files
 
@@ -292,6 +293,7 @@ class TestGrok(unittest.TestCase):
 
 
     def test_grok_empty(self):
+        # An empty stream (no [DONE], no content) is treated as an incomplete response
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch('os.environ', {'XAI_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
@@ -306,8 +308,10 @@ class TestGrok(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_grok_response
 
-            main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
 
+        self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
             url='https://api.x.ai/v1/chat/completions',
@@ -329,7 +333,84 @@ class TestGrok(unittest.TestCase):
         mock_grok_response.close.assert_called_once()
 
         self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '\nError: xAI API stream ended unexpectedly without [DONE] terminator\n')
+
+
+    def test_grok_truncated_length(self):
+        # finish_reason == "length" indicates max_tokens truncation
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'XAI_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content": "partial"}}]}',
+                b'data: {"choices": [{"delta": {}, "finish_reason": "length"}]}',
+                b'data: [DONE]'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_grok_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'partial')
+        self.assertEqual(stderr.getvalue(), '\nError: xAI API response truncated (finish_reason: length)\n')
+
+
+    def test_grok_finish_reason_stop(self):
+        # finish_reason == "stop" is the normal completion case — no error
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'XAI_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content": "Goodbye"}}]}',
+                b'data: {"choices": [{"delta": {}, "finish_reason": "stop"}]}',
+                b'data: [DONE]'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
+
+        mock_grok_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'Goodbye\n')
         self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_grok_no_done_with_content(self):
+        # Connection drops mid-stream: content arrives but [DONE] never does
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'XAI_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content": "partial"}}]}'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_grok_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'partial')
+        self.assertEqual(stderr.getvalue(), '\nError: xAI API stream ended unexpectedly without [DONE] terminator\n')
 
 
     def test_grok_no_content(self):
@@ -468,6 +549,85 @@ data:  {"content": "Goodbye"}}]}
         )
         mock_grok_response.close.assert_called_once()
 
+        self.assertEqual(stdout.getvalue(), 'Goodbye\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_grok_split_multibyte_codepoint(self):
+        # A multi-byte UTF-8 codepoint (é = b'\xc3\xa9') split across HTTP chunks
+        # would raise UnicodeDecodeError without an incremental decoder.
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'XAI_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content": "caf\xc3',
+                b'\xa9"}}]}',
+                b'data: [DONE]'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
+
+        mock_grok_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'café\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_grok_split_chunk_continuation_no_prefix(self):
+        # Real chunk-boundary case: the continuation chunk arrives without its
+        # own 'data:' prefix. Without the SSE helper this content was silently dropped.
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'XAI_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta": {"content":',
+                b' "Goodbye"}}]}',
+                b'data: [DONE]'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
+
+        mock_grok_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'Goodbye\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_grok_split_chunk_continuation_no_prefix_fails_then_continues(self):
+        # Multi-chunk continuation where each non-prefixed continuation also fails JSON
+        # parse, exercising the data_prefix accumulation branch in the SSE helper.
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'XAI_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_grok_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_grok_response.status = 200
+            mock_grok_response.read_chunked.return_value = [
+                b'data: {"choices": [{"delta":',
+                b' {"content":',
+                b' "Goodbye"}}]}',
+                b'data: [DONE]'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_grok_response
+
+            main(['-m', 'Hello', '--api', 'grok', 'model-name', '-s', ''])
+
+        mock_grok_response.close.assert_called_once()
         self.assertEqual(stdout.getvalue(), 'Goodbye\n')
         self.assertEqual(stderr.getvalue(), '')
 

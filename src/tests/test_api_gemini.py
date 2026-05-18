@@ -8,7 +8,8 @@ import unittest.mock
 
 import urllib3
 
-from ctxkit.main import DEFAULT_SYSTEM, main
+from ctxkit.api import DEFAULT_SYSTEM
+from ctxkit.main import main
 
 from .test_main import create_test_files
 
@@ -26,6 +27,7 @@ class TestGemini(unittest.TestCase):
             mock_gemini_response.status = 200
             mock_gemini_response.read_chunked.return_value = [
                 b'data: {"candidates": [{"content": {"parts": [{"text": "Goodbye"}]}}]}',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance
@@ -65,6 +67,7 @@ class TestGemini(unittest.TestCase):
             mock_gemini_response.status = 200
             mock_gemini_response.read_chunked.return_value = [
                 b'data: {"candidates": [{"content": {"parts": [{"text": "Goodbye"}]}}]}',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance
@@ -109,6 +112,7 @@ class TestGemini(unittest.TestCase):
             mock_gemini_response.status = 200
             mock_gemini_response.read_chunked.return_value = [
                 b'data: {"candidates": [{"content": {"parts": [{"text": "Goodbye"}]}}]}',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance
@@ -152,6 +156,7 @@ class TestGemini(unittest.TestCase):
             mock_gemini_response.status = 200
             mock_gemini_response.read_chunked.return_value = [
                 b'data: {"candidates": [{"content": {"parts": [{"text": "Goodbye"}]}}]}',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance
@@ -194,6 +199,7 @@ class TestGemini(unittest.TestCase):
             mock_gemini_response.status = 200
             mock_gemini_response.read_chunked.return_value = [
                 b'data: {"candidates": [{"content": {"parts": [{"text": "Goodbye"}]}}]}',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance
@@ -236,6 +242,7 @@ class TestGemini(unittest.TestCase):
             mock_gemini_response.status = 200
             mock_gemini_response.read_chunked.return_value = [
                 b'data: {"candidates": [{"content": {"parts": [{"text": "Goodbye"}]}}]}',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance
@@ -268,6 +275,7 @@ class TestGemini(unittest.TestCase):
 
 
     def test_gemini_empty(self):
+        # An empty stream (no finishReason, no content) is treated as an incomplete response
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch('os.environ', {'GOOGLE_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
@@ -282,8 +290,10 @@ class TestGemini(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_gemini_response
 
-            main(['-m', 'Hello', '--api', 'gemini', 'gemini-2.0-flash-exp', '-s', ''])
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'gemini', 'gemini-2.0-flash-exp', '-s', ''])
 
+        self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
             url='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=XXXX&alt=sse',
@@ -301,7 +311,58 @@ class TestGemini(unittest.TestCase):
         mock_gemini_response.close.assert_called_once()
 
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '\nError: Gemini API stream ended unexpectedly without finishReason\n')
+
+
+    def test_gemini_truncated_max_tokens(self):
+        # finishReason == "MAX_TOKENS" indicates truncation
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'GOOGLE_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_gemini_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_gemini_response.status = 200
+            mock_gemini_response.read_chunked.return_value = [
+                b'data: {"candidates": [{"content": {"parts": [{"text": "partial"}]}}]}',
+                b'data: {"candidates": [{"finishReason": "MAX_TOKENS"}]}',
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_gemini_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'gemini', 'gemini-2.0-flash-exp', '-s', ''])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_gemini_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'partial')
+        self.assertEqual(stderr.getvalue(), '\nError: Gemini API response truncated (finishReason: MAX_TOKENS)\n')
+
+
+    def test_gemini_no_finish_reason_with_content(self):
+        # Connection drops mid-stream: content arrives but finishReason never does
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'GOOGLE_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_gemini_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_gemini_response.status = 200
+            mock_gemini_response.read_chunked.return_value = [
+                b'data: {"candidates": [{"content": {"parts": [{"text": "partial"}]}}]}',
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_gemini_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'gemini', 'gemini-2.0-flash-exp', '-s', ''])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_gemini_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'partial')
+        self.assertEqual(stderr.getvalue(), '\nError: Gemini API stream ended unexpectedly without finishReason\n')
 
 
     def test_gemini_no_text(self):
@@ -318,6 +379,7 @@ class TestGemini(unittest.TestCase):
                 b'data: {"candidates": [{"content": {"parts": [{}]}}]}',
                 b'data: {"candidates": [{"content": {"parts": [{"text": "Goodbye2"}]}}]}',
                 b'data: {"candidates": []}',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance
@@ -360,6 +422,7 @@ class TestGemini(unittest.TestCase):
 data: {"candidates": [{"content": {"parts": [{"text": "Goodbye\\n"}]}}]}
 data: {"candidates": [{"content": {"parts": [{"text": "Goodbye2"}]}}]}
 ''',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance
@@ -402,6 +465,7 @@ data: {"candidates": [{"content": {"parts": [{"text": "Goodbye2"}]}}]}
 data: {"candidates": [{"content": {"parts":
 data:  [{"text": "Goodbye"}]}}]}
 ''',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance
@@ -442,6 +506,7 @@ data:  [{"text": "Goodbye"}]}}]}
             mock_gemini_response.status = 200
             mock_gemini_response.read_chunked.return_value = [
                 b'data: {"candidates": [{"content": {"parts": [{"text": "Goodbye"}]}}]}',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance
@@ -482,6 +547,7 @@ data:  [{"text": "Goodbye"}]}}]}
             mock_gemini_response.status = 200
             mock_gemini_response.read_chunked.return_value = [
                 b'data: {"candidates": [{"content": {"parts": [{"text": "Goodbye"}]}}]}',
+                b'data: {"candidates": [{"finishReason": "STOP"}]}',
             ]
 
             # Configure the mock PoolManager instance

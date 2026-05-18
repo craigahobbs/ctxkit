@@ -12,7 +12,8 @@ import unittest.mock
 import urllib3
 
 import ctxkit.__main__
-from ctxkit.main import API_PROVIDERS, DEFAULT_SYSTEM, DEFAULT_SYSTEM_DIFF, main
+from ctxkit.api import API_PROVIDERS, DEFAULT_SYSTEM, DEFAULT_SYSTEM_DIFF
+from ctxkit.main import main
 
 
 # Helper context manager to create a list of files in a temporary directory
@@ -251,7 +252,7 @@ test text
         with create_test_files([
                  ('file.txt', 'File #0')
              ]) as temp_dir, \
-             unittest.mock.patch('ctxkit.grok.get_api_key', return_value='XXXX'), \
+             unittest.mock.patch('ctxkit.api.grok.get_api_key', return_value='XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
@@ -332,7 +333,7 @@ Hello
         with create_test_files([
                  ('file.txt', 'File #0')
              ]) as temp_dir, \
-             unittest.mock.patch('ctxkit.grok.get_api_key', return_value='XXXX'), \
+             unittest.mock.patch('ctxkit.api.grok.get_api_key', return_value='XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
@@ -406,7 +407,7 @@ File
         with create_test_files([
                  ('file.txt', 'Test')
              ]) as temp_dir, \
-             unittest.mock.patch('ctxkit.grok.get_api_key', return_value='XXXX'), \
+             unittest.mock.patch('ctxkit.api.grok.get_api_key', return_value='XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
@@ -473,7 +474,7 @@ ctxkit: delete
         with create_test_files([
                  ('file.txt', 'line one\nline two\nline three\n')
              ]) as temp_dir, \
-             unittest.mock.patch('ctxkit.grok.get_api_key', return_value='XXXX'), \
+             unittest.mock.patch('ctxkit.api.grok.get_api_key', return_value='XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
@@ -515,7 +516,7 @@ ctxkit: delete
 
     def test_extract_diff_new_file(self):
         with create_test_files([]) as temp_dir, \
-             unittest.mock.patch('ctxkit.grok.get_api_key', return_value='XXXX'), \
+             unittest.mock.patch('ctxkit.api.grok.get_api_key', return_value='XXXX'), \
              unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \

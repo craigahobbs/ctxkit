@@ -8,7 +8,8 @@ import unittest.mock
 
 import urllib3
 
-from ctxkit.main import DEFAULT_SYSTEM, main
+from ctxkit.api import DEFAULT_SYSTEM
+from ctxkit.main import main
 
 from .test_main import create_test_files
 
@@ -252,6 +253,7 @@ class TestClaude(unittest.TestCase):
 
 
     def test_claude_empty(self):
+        # An empty stream (no terminator, no content) is treated as an incomplete response
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch('os.environ', {'ANTHROPIC_API_KEY': 'XXXX'}), \
              unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
@@ -266,8 +268,10 @@ class TestClaude(unittest.TestCase):
             mock_pool_manager_instance = mock_pool_manager.return_value
             mock_pool_manager_instance.request.return_value = mock_claude_response
 
-            main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
 
+        self.assertEqual(cm_exc.exception.code, 2)
         mock_pool_manager_instance.request.assert_called_once_with(
             method='POST',
             url='https://api.anthropic.com/v1/messages',
@@ -290,7 +294,112 @@ class TestClaude(unittest.TestCase):
         mock_claude_response.close.assert_called_once()
 
         self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '\nError: Claude API stream ended unexpectedly without terminator\n')
+
+
+    def test_claude_message_stop_terminator(self):
+        # Real Anthropic protocol uses message_delta (with stop_reason) + message_stop event.
+        # The initial message_delta carries usage info without stop_reason; the later one
+        # carries the final stop_reason. Exercises the truthy-guard around stop_reason.
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'ANTHROPIC_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_claude_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_claude_response.status = 200
+            mock_claude_response.read_chunked.return_value = [
+                b'data: {"type": "content_block_delta", "delta": {"text": "Goodbye"}}',
+                b'data: {"type": "message_delta", "delta": {"usage": {"output_tokens": 1}}}',
+                b'data: {"type": "message_delta", "delta": {"stop_reason": "end_turn"}}',
+                b'data: {"type": "message_stop"}'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_claude_response
+
+            main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
+
+        mock_claude_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'Goodbye\n')
         self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_claude_good_stop_reason_no_message_stop(self):
+        # stop_reason == "end_turn" is itself a complete-response signal — don't
+        # false-positive raise just because message_stop didn't arrive after it.
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'ANTHROPIC_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_claude_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_claude_response.status = 200
+            mock_claude_response.read_chunked.return_value = [
+                b'data: {"type": "content_block_delta", "delta": {"text": "Goodbye"}}',
+                b'data: {"type": "message_delta", "delta": {"stop_reason": "end_turn"}}'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_claude_response
+
+            main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
+
+        mock_claude_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'Goodbye\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_claude_truncated_max_tokens(self):
+        # stop_reason == "max_tokens" indicates truncation
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'ANTHROPIC_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_claude_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_claude_response.status = 200
+            mock_claude_response.read_chunked.return_value = [
+                b'data: {"type": "content_block_delta", "delta": {"text": "partial"}}',
+                b'data: {"type": "message_delta", "delta": {"stop_reason": "max_tokens"}}',
+                b'data: {"type": "message_stop"}'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_claude_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_claude_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'partial')
+        self.assertEqual(stderr.getvalue(), '\nError: Claude API response truncated (stop_reason: max_tokens)\n')
+
+
+    def test_claude_no_terminator_with_content(self):
+        # Connection drops mid-stream: content arrives but no terminator
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch('os.environ', {'ANTHROPIC_API_KEY': 'XXXX'}), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            mock_claude_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_claude_response.status = 200
+            mock_claude_response.read_chunked.return_value = [
+                b'data: {"type": "content_block_delta", "delta": {"text": "partial"}}'
+            ]
+
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.return_value = mock_claude_response
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'claude', 'model-name', '-s', ''])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_claude_response.close.assert_called_once()
+        self.assertEqual(stdout.getvalue(), 'partial')
+        self.assertEqual(stderr.getvalue(), '\nError: Claude API stream ended unexpectedly without terminator\n')
 
 
     def test_claude_multiline(self):
