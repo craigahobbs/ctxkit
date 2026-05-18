@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.1 (2026-05-18)
+
+- [2ff8ffe](https://github.com/craigahobbs/ctxkit/commit/2ff8ffe) - code refactor and stability fixes
+
 ## 2.2.0 (2026-05-06)
 
 - [2e15731](https://github.com/craigahobbs/ctxkit/commit/2e15731) - add --diff argument
