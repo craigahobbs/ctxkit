@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.3 (2026-06-17)
+
+- [5d51b56](https://github.com/craigahobbs/ctxkit/commit/5d51b56) - fix error with ollama cloud models
+
 ## 2.2.2 (2026-05-18)
 
 - [1eab0a7](https://github.com/craigahobbs/ctxkit/commit/1eab0a7) - add ctxkit.api package to setup.cfg
