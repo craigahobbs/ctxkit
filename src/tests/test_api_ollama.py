@@ -861,6 +861,84 @@ class TestOllama(unittest.TestCase):
         self.assertEqual(stderr.getvalue(), '\nError: BOOM!\n')
 
 
+    def test_ollama_cloud_chunking(self):
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the show API call
+            mock_show_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_show_response.status = 200
+            mock_show_response.json.return_value = {'capabilities': []}
+
+            # A cloud-proxied stream packs multiple newline-delimited JSON objects into a single
+            # HTTP chunk and may split an object across chunks. Build the NDJSON stream, then
+            # re-split it at byte boundaries that do not align with the JSON object lines.
+            ndjson = ''.join(
+                json.dumps(obj) + '\n' for obj in [
+                    {'message': {'content': 'Hello '}},
+                    {'message': {'content': 'from '}},
+                    {'message': {'content': 'cloud!'}}
+                ]
+            ).encode('utf-8')
+            split = ndjson.index(b'cloud')
+
+            # Create a mock Response object for the chat API call with cloud-style chunk boundaries
+            mock_chat_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_chat_response.status = 200
+            mock_chat_response.read_chunked.return_value = [ndjson[:split], ndjson[split:]]
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
+
+            main(['-m', 'Hello', '--api', 'ollama', 'model-name', '-s', ''])
+
+        mock_chat_response.read_chunked.assert_called_once_with()
+        mock_chat_response.close.assert_called_once_with()
+
+        # Verify the full streamed response was reassembled from the misaligned chunks
+        self.assertEqual(stdout.getvalue(), 'Hello from cloud!\n')
+        self.assertEqual(stderr.getvalue(), '')
+
+
+    def test_ollama_truncated_stream(self):
+        with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
+             unittest.mock.patch.dict('os.environ', {}, clear=True), \
+             unittest.mock.patch('sys.stdout', io.StringIO()) as stdout, \
+             unittest.mock.patch('sys.stderr', io.StringIO()) as stderr:
+
+            # Create a mock Response object for the show API call
+            mock_show_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_show_response.status = 200
+            mock_show_response.json.return_value = {'capabilities': []}
+
+            # A complete object followed by a truncated object (the stream ended mid-object)
+            truncated = b'{"message": {"content": "the'
+            mock_chat_response = unittest.mock.Mock(spec=urllib3.response.HTTPResponse)
+            mock_chat_response.status = 200
+            mock_chat_response.read_chunked.return_value = [
+                json.dumps({'message': {'content': 'Hi '}}).encode('utf-8') + b'\n',
+                truncated
+            ]
+
+            # Configure the mock PoolManager instance
+            mock_pool_manager_instance = mock_pool_manager.return_value
+            mock_pool_manager_instance.request.side_effect = [mock_show_response, mock_chat_response]
+
+            with self.assertRaises(SystemExit) as cm_exc:
+                main(['-m', 'Hello', '--api', 'ollama', 'model-name', '-s', ''])
+
+        self.assertEqual(cm_exc.exception.code, 2)
+        mock_chat_response.read_chunked.assert_called_once_with()
+        mock_chat_response.close.assert_called_once_with()
+
+        # Verify the partial content was emitted and the truncation surfaced as an error
+        self.assertEqual(stdout.getvalue(), 'Hi ')
+        self.assertEqual(stderr.getvalue(), f'\nError: Invalid streamed response: {truncated.decode("utf-8")!r}\n')
+
+
     def test_ollama_list(self):
         with unittest.mock.patch('urllib3.PoolManager') as mock_pool_manager, \
              unittest.mock.patch.dict('os.environ', {}, clear=True), \
