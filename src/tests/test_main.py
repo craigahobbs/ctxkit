@@ -728,7 +728,7 @@ Main message
                 main(['-c', os.path.join(temp_dir, 'invalid.json'), '-s', ''])
         self.assertEqual(cm_exc.exception.code, 2)
         self.assertEqual(stdout.getvalue(), '')
-        self.assertEqual(stderr.getvalue(), "\nError: Unknown member 'items.0.invalid'\n")
+        self.assertEqual(stderr.getvalue(), '\nError: Unknown member "items.0.invalid"\n')
 
 
     def test_include(self):
