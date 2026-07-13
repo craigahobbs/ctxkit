@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.4 (2026-07-13)
+
+- [bceea05](https://github.com/craigahobbs/ctxkit/commit/bceea05) - schema-markdown 1.3
+
 ## 2.2.3 (2026-06-17)
 
 - [5d51b56](https://github.com/craigahobbs/ctxkit/commit/5d51b56) - fix error with ollama cloud models
