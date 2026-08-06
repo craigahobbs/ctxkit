@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ctxkit"
-version = "2.2.4"
+version = "2.2.5"
 description = "ctxkit is a command-line tool for creating AI prompts to modify code"
 readme = "README.md"
 license = "MIT"
