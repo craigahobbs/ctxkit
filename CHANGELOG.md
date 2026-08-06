@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.5 (2026-08-06)
+
+- [83f4aaf](https://github.com/craigahobbs/ctxkit/commit/83f4aaf) - migrate package metadata from setup.cfg to pyproject.toml
+
 ## 2.2.4 (2026-07-13)
 
 - [bceea05](https://github.com/craigahobbs/ctxkit/commit/bceea05) - schema-markdown 1.3
