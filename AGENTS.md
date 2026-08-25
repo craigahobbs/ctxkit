@@ -1,27 +1,21 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Notes for coding agents working in this repository.
 
 ## Project
 
 `ctxkit` is a Python CLI that builds AI prompts by concatenating ordered "context items" (messages, files, directories, URL content, included configs), optionally calls a provider API (Claude / Gemini / GPT / Grok / Ollama), and can extract response-emitted files back to disk (whole files or unified diffs).
 
-## Build / Test / Lint
+## python-build
 
-This repo uses the [python-build](https://github.com/craigahobbs/python-build) Makefile system (`Makefile.base` and `pylintrc` are auto-downloaded; never edit them — they get overwritten).
+This is a [python-build](https://github.com/craigahobbs/python-build#readme) package. Read the python-build skill before running tests, lint, coverage, or changing the Makefile: [`../python-build/SKILL.md`](../python-build/SKILL.md) if that file exists, otherwise [https://raw.githubusercontent.com/craigahobbs/python-build/main/SKILL.md](https://raw.githubusercontent.com/craigahobbs/python-build/main/SKILL.md).
 
-- `make test` — run unittest discovery (`src/tests/`). Warnings are errors (`-W error`).
-- `make cover` — run tests under coverage; **must hit 100% branch coverage** (`COVERAGE_REPORT_ARGS = --fail-under 100`).
-- `make lint` — pylint over `src/` (project disables `missing-*-docstring`).
-- `make commit` — runs `test lint doc cover`; use before publishing.
-- `make publish` — builds and uploads to PyPI (only when releasing).
-- `make superclean` — wipe venvs and downloaded build files.
+Local Makefile overrides:
 
-Run a single test: `make test TEST=tests.test_main.TestMain.test_some_case`
+- `PYLINT_ARGS` — missing docstring checks disabled
+- no `SPHINX_DOC` — `make doc` is a no-op
 
-Test against alternate Python versions via containers: `make test USE_DOCKER=1` (or `USE_PODMAN=1`); see `PYTHON_IMAGES` in `Makefile.base`.
-
-The first `make` invocation creates `build/venv/system/` with the package installed in editable mode plus pylint/coverage. To run ctxkit directly from the venv: `build/venv/system/bin/ctxkit ...`.
+`make clean` also cleans `examples/app-agent/`.
 
 ## Architecture
 
