@@ -2,8 +2,8 @@
     "items": [
         {"long": [
             "Here is the MarkdownUp backend application readme. It contains a section titled",
-            "\"MarkdownUp Applications\" that shows how to create MarkdownUp frontend and",
-            "backend applications."
+            "\"MarkdownUp Applications\" that shows how to create MarkdownUp frontend",
+            "applications."
         ]},
         {"file": "https://craigahobbs.github.io/markdown-up-py/README.md"},
         {"long": [
